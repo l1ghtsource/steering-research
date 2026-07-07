@@ -1,0 +1,10 @@
+{
+  "experiment": "smoke_qwen2b_e001_mean_direction",
+  "backend": "qwen35_2b_base",
+  "rows": 1,
+  "best_behavior": "sycophancy",
+  "best_origin": "source_backed_contrasts",
+  "best_layer": 0,
+  "best_activation_view": "assistant_answer_mean",
+  "best_direction_accuracy": 0.8285714285714286
+}

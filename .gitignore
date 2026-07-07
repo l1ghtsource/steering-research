@@ -203,6 +203,12 @@ cython_debug/
 # Temporary file for partial code execution
 tempCodeRunnerFile.py
 
+.DS_Store
+runs/
+logs/
+site/
+models/lora/
+
 # Ruff stuff:
 .ruff_cache/
 

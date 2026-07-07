@@ -1,0 +1,76 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "steering-research"
+version = "0.1.0"
+description = "Activation steering research harness for LatentBehaviorBench and Qwen-Scope."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "steering-research contributors" }]
+dependencies = [
+  "numpy>=1.26",
+  "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+docs = [
+  "zensical>=0.0.47",
+]
+model = [
+  "accelerate>=1.8",
+  "huggingface-hub>=0.31",
+  "safetensors>=0.5",
+  "torch>=2.7",
+  "transformers>=4.53",
+]
+training = [
+  "datasets>=3.6",
+  "peft>=0.16",
+]
+dev = [
+  "pre-commit>=4.5",
+  "pytest>=8.4",
+  "ruff>=0.12",
+  "ty>=0.0.1a15",
+]
+
+[project.scripts]
+steering = "steering_research.cli.main:main"
+steering-docs-check = "steering_research.cli.docs_check:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/steering_research"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+exclude = [
+  "external",
+  "ideas",
+  "runs",
+]
+
+[tool.ruff.lint]
+select = ["A", "B", "C4", "E", "F", "I", "N", "PERF", "RUF", "SIM", "UP", "W"]
+ignore = [
+  "A003",
+  "B008",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+
+[tool.ty]
+
+[tool.ty.src]
+include = ["src", "tests", "scripts", "dashboards"]
+
+[tool.ty.rules]
+unresolved-import = "ignore"

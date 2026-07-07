@@ -1,0 +1,64 @@
+{
+  "rows": [
+    {
+      "feature_index": 26298,
+      "delta": 0.015016988132681167,
+      "positive_mean": 0.011390057791556631,
+      "negative_mean": -0.0036269303411245344
+    },
+    {
+      "feature_index": 28685,
+      "delta": 0.01097508440060275,
+      "positive_mean": -0.003162802117211478,
+      "negative_mean": -0.014137886517814228
+    },
+    {
+      "feature_index": 15290,
+      "delta": -0.009084024892321654,
+      "positive_mean": -0.013482145246650491,
+      "negative_mean": -0.004398120354328836
+    },
+    {
+      "feature_index": 17752,
+      "delta": 0.008581144469124946,
+      "positive_mean": 0.5943932414054871,
+      "negative_mean": 0.5858120969363622
+    },
+    {
+      "feature_index": 16693,
+      "delta": -0.007341131328472069,
+      "positive_mean": -0.012719489554209368,
+      "negative_mean": -0.005378358225737299
+    },
+    {
+      "feature_index": 22831,
+      "delta": 0.006971264018544128,
+      "positive_mean": -0.008933380325990064,
+      "negative_mean": -0.015904644344534192
+    },
+    {
+      "feature_index": 21036,
+      "delta": -0.006462379119225911,
+      "positive_mean": -0.015655960461923055,
+      "negative_mean": -0.009193581342697144
+    },
+    {
+      "feature_index": 22176,
+      "delta": 0.0052269839548638895,
+      "positive_mean": -0.006206624342926911,
+      "negative_mean": -0.0114336082977908
+    },
+    {
+      "feature_index": 21125,
+      "delta": 0.003943553141185215,
+      "positive_mean": -0.0066215082204767635,
+      "negative_mean": -0.010565061361661979
+    },
+    {
+      "feature_index": 9641,
+      "delta": 0.003124390303024224,
+      "positive_mean": -0.006699155271053314,
+      "negative_mean": -0.009823545574077538
+    }
+  ]
+}

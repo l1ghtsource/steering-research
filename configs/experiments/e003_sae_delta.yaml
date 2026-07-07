@@ -1,0 +1,16 @@
+name: e003_sae_delta
+dataset: configs/data/latent_behavior_bench.yaml
+model: configs/models/qwen35_2b.yaml
+backend: fake
+seed: 17
+behaviors:
+  - hallucination
+  - sycophancy
+  - premature_refusal
+layers: [12]
+activation_view: last_prompt_token
+origin: source_backed_contrasts
+limit_per_behavior: 16
+top_features: 25
+output_dir: runs
+

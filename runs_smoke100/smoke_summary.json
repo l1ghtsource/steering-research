@@ -1,0 +1,10 @@
+{
+  "run_dirs": [
+    "/Users/tochkamac/Documents/GitHub/steering-research/runs_smoke100/20260707T162708Z_smoke_qwen2b_e001_mean_direction",
+    "/Users/tochkamac/Documents/GitHub/steering-research/runs_smoke100/20260707T162744Z_smoke_qwen2b_e002_activation_monitor",
+    "/Users/tochkamac/Documents/GitHub/steering-research/runs_smoke100/20260707T162841Z_smoke_qwen2b_e003_sae_delta",
+    "/Users/tochkamac/Documents/GitHub/steering-research/runs_smoke100/20260707T162912Z_smoke_qwen2b_e004_caa_steering",
+    "/Users/tochkamac/Documents/GitHub/steering-research/runs_smoke100/20260707T163140Z_smoke_qwen2b_e005_sae_feature_steering",
+    "/Users/tochkamac/Documents/GitHub/steering-research/runs_smoke100/20260707T163429Z_smoke_qwen2b_e006_lora_sft"
+  ]
+}

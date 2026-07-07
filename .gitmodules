@@ -1,0 +1,3 @@
+[submodule "external/LatentBehaviorBench"]
+	path = external/LatentBehaviorBench
+	url = https://github.com/AnanasClassic/LatentBehaviorBench.git

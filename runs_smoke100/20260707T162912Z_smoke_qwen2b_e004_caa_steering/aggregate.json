@@ -1,0 +1,18 @@
+{
+  "rows": [
+    {
+      "alpha": -0.5,
+      "n": 100,
+      "mean_refusal_marker": 0.0,
+      "mean_agreement_marker": 0.41,
+      "mean_length_tokens": 147.08
+    },
+    {
+      "alpha": 0.0,
+      "n": 100,
+      "mean_refusal_marker": 0.0,
+      "mean_agreement_marker": 0.41,
+      "mean_length_tokens": 147.13
+    }
+  ]
+}

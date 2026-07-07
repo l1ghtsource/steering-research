@@ -1,0 +1,5 @@
+{
+  "experiment": "smoke_qwen2b_e003_sae_delta",
+  "backend": "qwen35_2b_base",
+  "rows": 10
+}
