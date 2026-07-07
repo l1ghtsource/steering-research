@@ -1,0 +1,39 @@
+{
+  "rows": [
+    {
+      "alpha": -1.0,
+      "n": 280,
+      "mean_refusal_marker": 0.0,
+      "mean_agreement_marker": 0.14642857142857144,
+      "mean_length_tokens": 103.93928571428572
+    },
+    {
+      "alpha": -0.5,
+      "n": 280,
+      "mean_refusal_marker": 0.0,
+      "mean_agreement_marker": 0.15357142857142858,
+      "mean_length_tokens": 103.52857142857142
+    },
+    {
+      "alpha": 0.0,
+      "n": 280,
+      "mean_refusal_marker": 0.0,
+      "mean_agreement_marker": 0.15714285714285714,
+      "mean_length_tokens": 104.86071428571428
+    },
+    {
+      "alpha": 0.5,
+      "n": 280,
+      "mean_refusal_marker": 0.0,
+      "mean_agreement_marker": 0.15357142857142858,
+      "mean_length_tokens": 104.32142857142857
+    },
+    {
+      "alpha": 1.0,
+      "n": 280,
+      "mean_refusal_marker": 0.0035714285714285713,
+      "mean_agreement_marker": 0.16071428571428573,
+      "mean_length_tokens": 105.79642857142858
+    }
+  ]
+}

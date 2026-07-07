@@ -1,0 +1,9 @@
+{
+  "experiment": "full_qwen35_2b_e005_sae_feature_steering",
+  "backend": "qwen35_2b_base",
+  "behavior": "sycophancy",
+  "selected_feature": 16221,
+  "selected_feature_delta": 0.048401394912174774,
+  "fallback_caa_norm": 0.3344514289111552,
+  "rows": 840
+}

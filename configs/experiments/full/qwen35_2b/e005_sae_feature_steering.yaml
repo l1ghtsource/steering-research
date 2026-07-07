@@ -1,0 +1,17 @@
+name: full_qwen35_2b_e005_sae_feature_steering
+dataset: configs/data/latent_behavior_bench.yaml
+model: configs/models/qwen35_2b.yaml
+backend: qwen
+seed: 17
+behavior: sycophancy
+origin: source_backed_contrasts
+eval_bucket: external_clean
+layer: 12
+activation_view: assistant_answer_mean
+train_limit: 1000000
+eval_limit: 1000000
+alphas: [-1.0, 0.0, 1.0]
+max_new_tokens: 96
+generation_batch_size: 4
+top_features: 10
+output_dir: runs_full_qwen35_2b_final

@@ -15,6 +15,7 @@ from steering_research.models.base import ActivationRequest
 from steering_research.reports.dashboard import write_static_dashboard
 from steering_research.reports.markdown import write_experiment_report
 from steering_research.runtime import RunLogger, load_yaml, resolve_path
+from steering_research.scoring import score_generation
 from steering_research.steering import run_steering_sweep
 
 T = TypeVar("T")
@@ -267,9 +268,9 @@ def run_e004(repo_root: Path, config_path: Path, backend_kind: str | None = None
         direction,
         [float(alpha) for alpha in cfg["alphas"]],
         max_new_tokens=int(cfg.get("max_new_tokens", 96)),
+        generation_batch_size=int(cfg.get("generation_batch_size", 1)),
+        on_row=logger.log_metric,
     )
-    for row in rows:
-        logger.log_metric(row)
     by_alpha: dict[float, list[dict[str, object]]] = {}
     for row in rows:
         by_alpha.setdefault(_as_float(row["alpha"]), []).append(row)
@@ -363,23 +364,66 @@ def run_e005(repo_root: Path, config_path: Path, backend_kind: str | None = None
         behavior=str(cfg["behavior"]),
         limit=int(cfg.get("eval_limit", 8)),
     )
-    rows = []
-    for example in examples:
-        for alpha in [float(x) for x in cfg["alphas"]]:
-            generation = backend.generate(
-                example,
-                max_new_tokens=int(cfg.get("max_new_tokens", 96)),
-                steering=(int(cfg["layer"]), steering_vector, alpha),
-            )
-            row = {
-                "experiment": cfg["name"],
-                "example_id": example.id,
+    rows: list[dict[str, Any]] = []
+    batch_size = max(1, int(cfg.get("generation_batch_size", 1)))
+    generate_batch = getattr(backend, "generate_batch", None)
+    for alpha in [float(x) for x in cfg["alphas"]]:
+        steering = (int(cfg["layer"]), steering_vector, alpha)
+        for start in range(0, len(examples), batch_size):
+            batch = examples[start : start + batch_size]
+            if callable(generate_batch) and batch_size > 1:
+                generations = generate_batch(
+                    batch,
+                    max_new_tokens=int(cfg.get("max_new_tokens", 96)),
+                    steering=steering,
+                )
+            else:
+                generations = [
+                    backend.generate(
+                        example,
+                        max_new_tokens=int(cfg.get("max_new_tokens", 96)),
+                        steering=steering,
+                    )
+                    for example in batch
+                ]
+            for example, generation in zip(batch, generations, strict=True):
+                scores = score_generation(generation.text)
+                row = {
+                    "experiment": cfg["name"],
+                    "example_id": example.id,
+                    "alpha": alpha,
+                    "selected_feature": selected_feature,
+                    "text": generation.text,
+                    **scores,
+                }
+                rows.append(row)
+                logger.log_metric(row)
+    by_alpha: dict[float, list[dict[str, object]]] = {}
+    for row in rows:
+        by_alpha.setdefault(_as_float(row["alpha"]), []).append(row)
+    aggregate_rows = []
+    for alpha, alpha_rows in sorted(by_alpha.items()):
+        aggregate_rows.append(
+            {
                 "alpha": alpha,
-                "selected_feature": selected_feature,
-                "text": generation.text,
+                "n": len(alpha_rows),
+                "mean_refusal_marker": float(
+                    np.mean([_as_float(r["refusal_marker"]) for r in alpha_rows])
+                ),
+                "mean_agreement_marker": float(
+                    np.mean([_as_float(r["agreement_marker"]) for r in alpha_rows])
+                ),
+                "mean_length_tokens": float(
+                    np.mean([_as_float(r["length_tokens"]) for r in alpha_rows])
+                ),
             }
-            rows.append(row)
-            logger.log_metric(row)
+        )
+    with (logger.run_dir / "tables" / "generations.csv").open(
+        "w", encoding="utf-8", newline=""
+    ) as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(rows[0]) if rows else ["empty"])
+        writer.writeheader()
+        writer.writerows(rows)
     summary = {
         "experiment": cfg["name"],
         "backend": backend.name,
@@ -394,8 +438,9 @@ def run_e005(repo_root: Path, config_path: Path, backend_kind: str | None = None
         "top_sae_features.json",
         {"rows": [result.__dict__ for result in deltas]},
     )
+    logger.write_json("aggregate.json", {"rows": aggregate_rows})
     write_experiment_report(
-        logger.run_dir / "report.md", "E005 SAE Feature Steering", summary, rows[:20]
+        logger.run_dir / "report.md", "E005 SAE Feature Steering", summary, aggregate_rows
     )
     write_static_dashboard(logger.run_dir.parent)
     return logger.run_dir

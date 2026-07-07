@@ -1,0 +1,44 @@
+{
+  "config": {
+    "name": "full_qwen35_2b_e001_mean_direction",
+    "dataset": "configs/data/latent_behavior_bench.yaml",
+    "model": "configs/models/qwen35_2b.yaml",
+    "backend": "qwen",
+    "seed": 17,
+    "behaviors": [
+      "hallucination",
+      "sycophancy",
+      "premature_refusal",
+      "deception",
+      "unsafe_planning",
+      "overconfidence"
+    ],
+    "origins": [
+      "source_backed_contrasts",
+      "synthetic_contrasts"
+    ],
+    "layers": [
+      0,
+      6,
+      12,
+      18,
+      23
+    ],
+    "component": "residual",
+    "activation_views": [
+      "last_prompt_token",
+      "first_assistant_token",
+      "assistant_answer_mean"
+    ],
+    "train_fraction": 0.7,
+    "limit_per_behavior": 1000000,
+    "output_dir": "runs_full_qwen35_2b_final"
+  },
+  "backend": "qwen35_2b_base",
+  "benchmark": {
+    "examples": 8688,
+    "contrasts": 1000,
+    "missing_positive_refs": 0,
+    "missing_negative_refs": 0
+  }
+}
