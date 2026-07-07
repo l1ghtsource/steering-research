@@ -207,6 +207,7 @@ def run_e003(repo_root: Path, config_path: Path, backend_kind: str | None = None
                     repo_id=str(model_cfg["sae_repo_id"]),
                     layer=int(layer),
                     top_k=int(model_cfg.get("sae_top_k", 50)),
+                    local_files_only=bool(model_cfg.get("local_files_only", False)),
                 )
             deltas = rank_sae_deltas(
                 backend,
@@ -339,6 +340,7 @@ def run_e005(repo_root: Path, config_path: Path, backend_kind: str | None = None
             repo_id=str(model_cfg["sae_repo_id"]),
             layer=int(cfg["layer"]),
             top_k=int(model_cfg.get("sae_top_k", 50)),
+            local_files_only=bool(model_cfg.get("local_files_only", False)),
         )
     deltas = rank_sae_deltas(
         backend,
@@ -426,6 +428,7 @@ def run_qwen_limited_smoke(repo_root: Path, limit: int = 2) -> Path:
         repo_id=str(model_cfg["sae_repo_id"]),
         layer=0,
         top_k=int(model_cfg.get("sae_top_k", 50)),
+        local_files_only=bool(model_cfg.get("local_files_only", False)),
     )
     deltas = rank_sae_deltas(backend, pairs, request, top_features=3, sae=sae)
     for rank, result in enumerate(deltas, start=1):

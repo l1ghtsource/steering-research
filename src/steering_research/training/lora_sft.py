@@ -71,13 +71,18 @@ def run_lora_sft(repo_root: Path, config_path: Path) -> Path:
         }
     )
 
+    local_files_only = bool(model_cfg.get("local_files_only", False))
     tokenizer: Any = AutoTokenizer.from_pretrained(
-        str(model_cfg["model_id"]), trust_remote_code=True
+        str(model_cfg["model_id"]),
+        trust_remote_code=True,
+        local_files_only=local_files_only,
     )
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
     model: Any = AutoModelForCausalLM.from_pretrained(
-        str(model_cfg["model_id"]), trust_remote_code=True
+        str(model_cfg["model_id"]),
+        trust_remote_code=True,
+        local_files_only=local_files_only,
     )
     if hasattr(model, "config"):
         model.config.use_cache = False

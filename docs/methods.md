@@ -34,7 +34,7 @@ The activation monitor reuses the CAA unit direction as a detector:
 score(x) = <h(x), u>
 ```
 
-Positive examples should score higher than negative examples. The smoke monitor
+Positive examples should score higher than negative examples. The monitor
 reports AUROC, mean positive score, mean negative score, and score gap.
 
 ## Qwen-Scope SAE delta
@@ -73,4 +73,3 @@ h_layer = h_layer + alpha * normalize(W_dec[:, j])
 This is different from CAA steering: the intervention is tied to an
 interpretable sparse feature candidate rather than a dense mean-difference
 direction.
-

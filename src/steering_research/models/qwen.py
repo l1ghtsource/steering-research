@@ -37,6 +37,7 @@ class QwenActivationBackend:
     model_id: str
     device: str = "auto"
     dtype: str = "auto"
+    local_files_only: bool = False
     name: str = "qwen"
     hidden_size: int = field(init=False)
     model: Any = field(init=False)
@@ -57,7 +58,12 @@ class QwenActivationBackend:
         torch_dtype = _torch_dtype(self.dtype, torch)
         if torch_dtype != "auto":
             kwargs["torch_dtype"] = torch_dtype
-        self.tokenizer = AutoTokenizer.from_pretrained(self.model_id, trust_remote_code=True)
+        kwargs["local_files_only"] = self.local_files_only
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            self.model_id,
+            trust_remote_code=True,
+            local_files_only=self.local_files_only,
+        )
         self.model = AutoModelForCausalLM.from_pretrained(self.model_id, **kwargs)
         model_to: Any = self.model.to
         model_to(self.device)

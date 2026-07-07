@@ -42,5 +42,4 @@ No Streamlit or server process is required.
 - Python notebooks;
 - DuckDB;
 - dashboard builders;
-- CI smoke verifiers.
-
+- artifact verifiers.

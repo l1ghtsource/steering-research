@@ -10,20 +10,44 @@ class QwenScopeSae:
     repo_id: str
     layer: int
     top_k: int = 50
+    local_files_only: bool = False
     _state: dict[str, Any] | None = None
+
+    def _layer_path(self) -> Path:
+        repo_path = Path(self.repo_id).expanduser()
+        if repo_path.exists():
+            if repo_path.is_file():
+                return repo_path
+            path = repo_path / f"layer{self.layer}.sae.pt"
+            if not path.exists():
+                msg = f"Local Qwen-Scope SAE file not found: {path}"
+                raise FileNotFoundError(msg)
+            return path
+
+        try:
+            from huggingface_hub import hf_hub_download
+        except ImportError as exc:
+            msg = "Install model dependencies with `uv sync --extra model` to use Qwen-Scope SAE."
+            raise RuntimeError(msg) from exc
+
+        return Path(
+            hf_hub_download(
+                self.repo_id,
+                filename=f"layer{self.layer}.sae.pt",
+                local_files_only=self.local_files_only,
+            )
+        )
 
     def load(self) -> dict[str, Any]:
         if self._state is not None:
             return self._state
         try:
             import torch
-            from huggingface_hub import hf_hub_download
         except ImportError as exc:
             msg = "Install model dependencies with `uv sync --extra model` to use Qwen-Scope SAE."
             raise RuntimeError(msg) from exc
 
-        path = hf_hub_download(self.repo_id, filename=f"layer{self.layer}.sae.pt")
-        state = torch.load(Path(path), map_location="cpu")
+        state = torch.load(self._layer_path(), map_location="cpu")
         required = {"W_enc", "W_dec", "b_enc", "b_dec"}
         missing = required.difference(state)
         if missing:

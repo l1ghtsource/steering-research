@@ -112,7 +112,8 @@ def main() -> int:
     verify = sub.add_parser("verify-runs")
     verify.add_argument("--runs-root", type=Path, default=Path("runs"))
 
-    sub.add_parser("dashboard")
+    dashboard = sub.add_parser("dashboard")
+    dashboard.add_argument("--runs-root", type=Path, default=Path("runs"))
 
     args = parser.parse_args()
     repo_root = repo_root_from_cwd()
@@ -150,7 +151,7 @@ def main() -> int:
         print(result)
         return 0 if result["ok"] else 1
     if args.command == "dashboard":
-        print(write_static_dashboard(repo_root / "runs"))
+        print(write_static_dashboard(repo_root / args.runs_root))
         return 0
     return 1
 

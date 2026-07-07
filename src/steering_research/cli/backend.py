@@ -21,6 +21,7 @@ def build_backend(kind: str, model_config_path: Path | None = None) -> Activatio
             model_id=str(cfg["model_id"]),
             device=str(cfg.get("device", "auto")),
             dtype=str(cfg.get("dtype", "auto")),
+            local_files_only=bool(cfg.get("local_files_only", False)),
             name=str(cfg.get("name", "qwen")),
         )
     msg = f"Unknown backend: {kind}"

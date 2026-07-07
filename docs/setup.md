@@ -17,7 +17,7 @@ If the repository was cloned without submodules:
 git submodule update --init --recursive
 ```
 
-## Local development
+## Environment
 
 ```bash
 uv sync --extra dev --extra model --extra training --extra docs
@@ -31,24 +31,33 @@ This installs:
 - PEFT training dependencies;
 - Zensical docs builder.
 
-## Smoke commands
+For an offline H200 server, install through the internal PyPI mirror and keep
+Hugging Face loaders in offline mode:
+
+```bash
+export HF_HOME=/data/hf-cache
+export HF_HUB_OFFLINE=1
+export TRANSFORMERS_OFFLINE=1
+```
+
+## Dataset check
 
 ```bash
 uv run steering validate-data
-uv run steering smoke --backend fake
-uv run steering smoke-real --examples 10
-uv run steering verify-runs --runs-root runs
-uv run zensical build --clean --strict
 ```
 
-## Static gates
+This confirms that the LatentBehaviorBench submodule exposes the processed
+examples, contrast pairs, and clean split file required by the experiments.
+
+## Quality gates
 
 ```bash
 uv run ruff format --check
 uv run ruff check
 uv run ty check
 uv run pytest
+uv run zensical build --clean --strict
 ```
 
-CI intentionally does not run tests. Tests are local smoke/development gates.
-
+CI runs the static gates and builds the Zensical site. Model execution and
+training runs are launched explicitly from experiment configs.

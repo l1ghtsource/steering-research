@@ -17,6 +17,7 @@ def collect_summaries(runs_root: Path) -> list[dict[str, Any]]:
 
 
 def write_static_dashboard(runs_root: Path) -> Path:
+    runs_root.mkdir(parents=True, exist_ok=True)
     rows = collect_summaries(runs_root)
     columns = sorted({key for row in rows for key in row})
     out = runs_root / "dashboard.html"

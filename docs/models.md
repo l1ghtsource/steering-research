@@ -15,6 +15,7 @@ configs/models/qwen35_2b.yaml
 The H200 target configs are also present:
 
 - `configs/models/qwen35_9b.yaml`
+- `configs/models/qwen35_9b_h200_offline.yaml`
 - `configs/models/qwen35_27b.yaml`
 
 ## Qwen backend
@@ -39,6 +40,10 @@ layer{n}.sae.pt
   b_dec: (d_model,)
 ```
 
+`sae_repo_id` can be either a Hugging Face repo id or a local directory. For
+offline servers, point it to a directory that contains `layer{n}.sae.pt` files
+and set `local_files_only: true` in the model config.
+
 For 2B:
 
 - SAE repo: `Qwen/SAE-Res-Qwen3.5-2B-Base-W32K-L0_50`
@@ -59,4 +64,3 @@ For 2B:
 For paired same-prompt contrasts, answer-dependent views are often more
 informative than `last_prompt_token`, because the prompt is identical across the
 positive and negative sides.
-

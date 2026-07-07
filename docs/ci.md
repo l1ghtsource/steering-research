@@ -9,8 +9,9 @@ CI has two jobs:
 1. `static`: install dev dependencies and run `ruff` + `ty`.
 2. `pages`: build the Zensical site and deploy it to GitHub Pages.
 
-Tests are intentionally not run in CI because local Qwen/SAE smoke tests are
-resource-sensitive and are run manually.
+Experiment execution is intentionally not part of CI because Qwen and
+Qwen-Scope runs depend on large model artifacts, GPU placement, and campaign
+configs. CI stays focused on static correctness and documentation publishing.
 
 ## Pages build
 
