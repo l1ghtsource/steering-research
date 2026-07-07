@@ -14,6 +14,11 @@ resource-sensitive and are run manually.
 
 ## Pages build
 
+The workflow configures Pages with `enablement: true`, so the first successful
+push to `main` can create the Pages site and set its source to GitHub Actions.
+If the repository or organization blocks workflow-managed Pages setup, enable it
+once in GitHub: `Settings -> Pages -> Source -> GitHub Actions`.
+
 The docs job runs:
 
 ```bash
@@ -26,4 +31,3 @@ The generated site is uploaded from:
 ```text
 site/
 ```
-
