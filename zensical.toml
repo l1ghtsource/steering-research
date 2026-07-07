@@ -6,6 +6,7 @@ site_url = "https://l1ghtsource.github.io/steering-research/"
 copyright = "Copyright &copy; 2026 steering-research contributors"
 nav = [
   { "Overview" = "index.md" },
+  { "Research Program" = "research.md" },
   { "Setup" = "setup.md" },
   { "Dataset" = "datasets.md" },
   { "Models and SAE" = "models.md" },
@@ -83,4 +84,3 @@ combine_header_slug = true
 [project.markdown_extensions.pymdownx.tasklist]
 custom_checkbox = true
 [project.markdown_extensions.pymdownx.tilde]
-

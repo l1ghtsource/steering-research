@@ -3,6 +3,24 @@
 Activation steering research harness for LatentBehaviorBench, Qwen3.5, and
 Qwen-Scope sparse autoencoders.
 
+## Abstract
+
+This repository studies whether undesirable behaviors in Qwen3.5 models can be
+identified as latent residual-stream directions or Qwen-Scope sparse features,
+then controlled through inference-time steering. It uses LatentBehaviorBench as
+a contrastive dataset for hallucination, sycophancy, premature refusal,
+deception, unsafe planning, and overconfidence.
+
+The research loop is:
+
+1. build dense behavior directions from positive-negative contrast pairs;
+2. measure whether those directions detect behavior on held-out examples;
+3. rank Qwen-Scope sparse features by behavior activation deltas;
+4. run dense residual steering and sparse decoder-vector steering;
+5. compare training-free steering with a LoRA SFT baseline;
+6. log every run as JSONL metrics, JSON summaries, Markdown reports, and static
+   HTML dashboards.
+
 ## Setup
 
 ```bash

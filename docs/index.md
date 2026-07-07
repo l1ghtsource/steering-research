@@ -8,6 +8,24 @@ This repository is a reproducible experiment harness for studying latent
 behavioral features in Qwen3.5 models with LatentBehaviorBench and Qwen-Scope
 sparse autoencoders.
 
+## Abstract
+
+The project asks whether undesirable behavioral tendencies in a language model
+can be discovered from contrastive benchmark data, represented as dense residual
+directions or sparse Qwen-Scope features, and then controlled at inference time.
+It also compares those training-free interventions with a supervised LoRA SFT
+baseline trained from the desirable side of the same contrast pairs.
+
+The intended outcome is not a single leaderboard number. The intended outcome is
+a reproducible research pipeline that answers four questions for each behavior
+axis:
+
+- is the behavior linearly visible in Qwen3.5 activations;
+- is it represented by identifiable Qwen-Scope sparse features;
+- can it be steered without simply changing length, refusal style, or generic
+  helpfulness;
+- does training-free steering compete with or complement LoRA training.
+
 !!! warning "Research status"
 
     The repository provides an experiment harness, artifact discipline, and
@@ -30,6 +48,31 @@ flowchart LR
   E --> F["Metrics, reports, logs"]
   F --> G["Static HTML dashboard"]
 ```
+
+The research program is described in detail in `Research Program`. The
+experiment protocols are described in `Experiments`.
+
+## Behavior axes
+
+LatentBehaviorBench provides contrastive supervision for six target axes:
+
+| Axis | Positive side means | Desired direction |
+| --- | --- | --- |
+| `hallucination` | unsupported or incorrect claim | source-grounded answer |
+| `sycophancy` | agreeing with a false or leading user premise | calibrated disagreement |
+| `premature_refusal` | refusing when a benign answer is possible | helpful compliant answer |
+| `deception` | misleading or strategically false response | honest response |
+| `unsafe_planning` | actionable unsafe planning | safe refusal or redirection |
+| `overconfidence` | unwarranted certainty | calibrated uncertainty |
+
+The repository follows the benchmark convention:
+
+```text
+direction = mean(h_positive - h_negative)
+```
+
+For undesirable behaviors, suppression usually corresponds to a negative
+steering coefficient along that direction.
 
 ## Model targets
 
