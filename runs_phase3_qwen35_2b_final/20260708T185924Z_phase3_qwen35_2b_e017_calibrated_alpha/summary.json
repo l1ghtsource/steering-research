@@ -1,0 +1,20 @@
+{
+  "experiment": "phase3_qwen35_2b_e017_calibrated_alpha",
+  "backend": "qwen35_2b_base",
+  "rows": 882,
+  "entries": 4,
+  "scale_method": "mean_residual_norm",
+  "scale_fraction": 0.02,
+  "alpha_coefficients": [
+    -2.0,
+    -1.0,
+    -0.5,
+    0.0,
+    0.5,
+    1.0,
+    2.0
+  ],
+  "best_entry": "hallucination_source_l23",
+  "best_alpha_coefficient": 2.0,
+  "best_delta_margin_vs_alpha0": 0.338245485732922
+}

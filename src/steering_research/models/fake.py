@@ -6,7 +6,12 @@ from dataclasses import dataclass
 import numpy as np
 
 from steering_research.data.schema import Example
-from steering_research.models.base import ActivationRequest, FloatArray, GenerationResult
+from steering_research.models.base import (
+    ActivationRequest,
+    FloatArray,
+    GenerationResult,
+    SequenceLogprobResult,
+)
 
 
 def _seed_from_text(text: str) -> int:
@@ -56,3 +61,49 @@ class FakeActivationBackend:
             prompt=example.prompt_text,
             metadata={"backend": self.name, "example_id": example.id},
         )
+
+    def sequence_logprob(
+        self,
+        prompt: str,
+        completion: str,
+        steering: tuple[int, FloatArray, float] | None = None,
+        position_mode: str = "all",
+    ) -> SequenceLogprobResult:
+        token_count = max(1, len(completion.split()))
+        seed = _seed_from_text(f"{prompt}|{completion}|{position_mode}")
+        base = -0.1 * token_count - (seed % 997) / 9970.0
+        steering_shift = 0.0
+        if steering is not None:
+            _layer, direction, alpha = steering
+            checksum = float(direction[: min(8, direction.shape[0])].sum())
+            steering_shift = 0.01 * float(alpha) * checksum
+        logprob = base + steering_shift
+        return SequenceLogprobResult(
+            prompt=prompt,
+            completion=completion,
+            logprob=logprob,
+            mean_logprob=logprob / token_count,
+            token_count=token_count,
+            metadata={
+                "backend": self.name,
+                "steering": steering is not None,
+                "position_mode": position_mode,
+            },
+        )
+
+    def sequence_logprob_batch(
+        self,
+        prompts: list[str],
+        completions: list[str],
+        steering: tuple[int, FloatArray, float] | None = None,
+        position_mode: str = "all",
+    ) -> list[SequenceLogprobResult]:
+        return [
+            self.sequence_logprob(
+                prompt,
+                completion,
+                steering=steering,
+                position_mode=position_mode,
+            )
+            for prompt, completion in zip(prompts, completions, strict=True)
+        ]

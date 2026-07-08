@@ -73,6 +73,9 @@ Use the artifacts differently for each experiment family:
 | E013 | always-on versus dynamic steering | gate firing rate and missed-risk examples |
 | E014 | layer-group by alpha response | single-layer versus windowed hook side effects |
 | E015 | source-layer by target-layer matrix | diagonal strength and late-layer transfer |
+| E016 | alpha-level forced-choice preference margin | paired desirable versus undesirable answer scores |
+| E017 | calibrated coefficient response | calibration scale and raw-alpha reconstruction |
+| E018 | position-mode by alpha response | whether prompt, answer, or boundary positions matter |
 
 ## Campaign Summary
 

@@ -6,7 +6,12 @@ from typing import Any
 import numpy as np
 
 from steering_research.data.schema import Example
-from steering_research.models.base import ActivationRequest, FloatArray, GenerationResult
+from steering_research.models.base import (
+    ActivationRequest,
+    FloatArray,
+    GenerationResult,
+    SequenceLogprobResult,
+)
 
 
 def _torch_dtype(dtype: str, torch: Any) -> Any:
@@ -131,7 +136,46 @@ class QwenActivationBackend:
         self._activation_cache.clear()
         return vector
 
-    def _install_steering_hooks(self, steerings: list[tuple[int, FloatArray, float]]) -> list[Any]:
+    def _position_delta(
+        self,
+        hidden: Any,
+        addition: Any,
+        prompt_lengths: list[int] | None,
+        position_mode: str,
+    ) -> Any:
+        torch = self._torch
+        if position_mode == "all":
+            return addition.view(1, 1, -1).expand_as(hidden)
+        if prompt_lengths is None:
+            msg = f"Position mode {position_mode!r} requires prompt lengths."
+            raise ValueError(msg)
+        delta = torch.zeros_like(hidden)
+        seq_len = int(hidden.shape[1])
+        for batch_index, prompt_len in enumerate(prompt_lengths):
+            boundary = max(0, min(int(prompt_len), seq_len))
+            if position_mode == "prompt":
+                if boundary > 0:
+                    delta[batch_index, :boundary, :] = addition
+            elif position_mode == "answer":
+                if boundary < seq_len:
+                    delta[batch_index, boundary:, :] = addition
+            elif position_mode == "last_prompt":
+                index = max(0, min(boundary - 1, seq_len - 1))
+                delta[batch_index, index, :] = addition
+            elif position_mode == "first_answer":
+                if boundary < seq_len:
+                    delta[batch_index, boundary, :] = addition
+            else:
+                msg = f"Unsupported steering position mode: {position_mode}"
+                raise ValueError(msg)
+        return delta
+
+    def _install_steering_hooks(
+        self,
+        steerings: list[tuple[int, FloatArray, float]],
+        position_mode: str = "all",
+        prompt_lengths: list[int] | None = None,
+    ) -> list[Any]:
         hooks = []
         if not steerings:
             return hooks
@@ -139,16 +183,20 @@ class QwenActivationBackend:
         for layer, direction, alpha in steerings:
             direction_tensor = torch.tensor(direction, device=self.device, dtype=self.model.dtype)
             direction_tensor = direction_tensor / direction_tensor.norm().clamp_min(1e-8)
+            addition = alpha * direction_tensor
 
             def _hook(
                 _module: Any,
                 _inputs: Any,
                 output: Any,
-                direction_tensor: Any = direction_tensor,
-                alpha: float = alpha,
+                addition: Any = addition,
+                position_mode: str = position_mode,
+                prompt_lengths: list[int] | None = prompt_lengths,
             ) -> Any:
                 hidden = output[0] if isinstance(output, tuple) else output
-                hidden = hidden + alpha * direction_tensor.view(1, 1, -1)
+                hidden = hidden + self._position_delta(
+                    hidden, addition, prompt_lengths, position_mode
+                )
                 if isinstance(output, tuple):
                     return (hidden, *output[1:])
                 return hidden
@@ -235,6 +283,112 @@ class QwenActivationBackend:
             )
             for row, prompt in zip(output_ids, prompts, strict=True)
         ]
+
+    def sequence_logprob(
+        self,
+        prompt: str,
+        completion: str,
+        steering: tuple[int, FloatArray, float] | None = None,
+        position_mode: str = "all",
+    ) -> SequenceLogprobResult:
+        return self.sequence_logprob_batch(
+            [prompt],
+            [completion],
+            steering=steering,
+            position_mode=position_mode,
+        )[0]
+
+    def sequence_logprob_batch(
+        self,
+        prompts: list[str],
+        completions: list[str],
+        steering: tuple[int, FloatArray, float] | None = None,
+        position_mode: str = "all",
+    ) -> list[SequenceLogprobResult]:
+        if len(prompts) != len(completions):
+            msg = "prompts and completions must have the same length"
+            raise ValueError(msg)
+        if not prompts:
+            return []
+        torch = self._torch
+        prompt_lengths = [
+            int(
+                self.tokenizer(prompt, return_tensors="pt", add_special_tokens=True)[
+                    "input_ids"
+                ].shape[-1]
+            )
+            for prompt in prompts
+        ]
+        full_texts = [
+            f"{prompt}{completion}" for prompt, completion in zip(prompts, completions, strict=True)
+        ]
+        old_padding_side = str(self.tokenizer.padding_side)
+        self.tokenizer.padding_side = "right"
+        try:
+            full_inputs = self.tokenizer(
+                full_texts,
+                return_tensors="pt",
+                add_special_tokens=True,
+                padding=True,
+            )
+        finally:
+            self.tokenizer.padding_side = old_padding_side
+        input_ids = full_inputs["input_ids"].to(self.device)
+        attention_mask = full_inputs["attention_mask"].to(self.device)
+        sequence_lengths = [int(value) for value in attention_mask.sum(dim=1).tolist()]
+        hooks = self._install_steering_hooks(
+            [] if steering is None else [steering],
+            position_mode=position_mode,
+            prompt_lengths=prompt_lengths,
+        )
+        try:
+            with torch.no_grad():
+                outputs = self.model(
+                    input_ids=input_ids,
+                    attention_mask=attention_mask,
+                    use_cache=False,
+                )
+                logits = outputs.logits[:, :-1, :]
+                labels = input_ids[:, 1:]
+                log_probs = torch.nn.functional.log_softmax(logits, dim=-1)
+                token_log_probs = log_probs.gather(-1, labels.unsqueeze(-1)).squeeze(-1)
+                results = []
+                for index, (prompt, completion) in enumerate(
+                    zip(prompts, completions, strict=True)
+                ):
+                    seq_len = sequence_lengths[index]
+                    prompt_len = prompt_lengths[index]
+                    start = max(0, min(prompt_len - 1, seq_len - 1))
+                    end = max(start, seq_len - 1)
+                    completion_log_probs = token_log_probs[index, start:end]
+                    token_count = int(completion_log_probs.numel())
+                    logprob = (
+                        float(completion_log_probs.sum().detach().float().cpu())
+                        if token_count
+                        else float("nan")
+                    )
+                    mean_logprob = logprob / token_count if token_count else float("nan")
+                    results.append(
+                        SequenceLogprobResult(
+                            prompt=prompt,
+                            completion=completion,
+                            logprob=logprob,
+                            mean_logprob=mean_logprob,
+                            token_count=token_count,
+                            metadata={
+                                "backend": self.name,
+                                "model_id": self.model_id,
+                                "steering": steering is not None,
+                                "position_mode": position_mode,
+                                "prompt_tokens": prompt_len,
+                                "sequence_tokens": seq_len,
+                            },
+                        )
+                    )
+        finally:
+            for hook in hooks:
+                hook.remove()
+        return results
 
     def generate_batch_multi_steering(
         self,

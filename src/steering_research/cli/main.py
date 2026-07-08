@@ -18,6 +18,9 @@ from steering_research.cli.experiments import (
     run_e013,
     run_e014,
     run_e015,
+    run_e016,
+    run_e017,
+    run_e018,
     run_qwen_limited_smoke,
     run_real_smoke_suite,
     write_smoke_summary,
@@ -128,6 +131,9 @@ def main() -> int:
         ("e013", "configs/experiments/e013_dynamic_steering.yaml"),
         ("e014", "configs/experiments/e014_multi_layer_steering.yaml"),
         ("e015", "configs/experiments/e015_layer_transfer.yaml"),
+        ("e016", "configs/experiments/e016_forced_choice.yaml"),
+        ("e017", "configs/experiments/e017_calibrated_alpha.yaml"),
+        ("e018", "configs/experiments/e018_position_steering.yaml"),
     ]:
         exp = sub.add_parser(name)
         exp.add_argument("--config", type=Path, default=Path(default))
@@ -196,6 +202,15 @@ def main() -> int:
         return 0
     if args.command == "e015":
         print(run_e015(repo_root, repo_root / args.config, args.backend))
+        return 0
+    if args.command == "e016":
+        print(run_e016(repo_root, repo_root / args.config, args.backend))
+        return 0
+    if args.command == "e017":
+        print(run_e017(repo_root, repo_root / args.config, args.backend))
+        return 0
+    if args.command == "e018":
+        print(run_e018(repo_root, repo_root / args.config, args.backend))
         return 0
     if args.command == "verify-runs":
         result = verify_runs(repo_root / args.runs_root)

@@ -30,6 +30,9 @@ interventions, and layer-localization ablations.
 | E013 | Can steering be gated by an activation monitor instead of applied always? | dynamic steering comparison |
 | E014 | Is steering stronger when applied over a layer window? | multi-layer steering sweep |
 | E015 | How stable is the direction across source and target layers? | layer-transfer matrix |
+| E016 | Does steering change preference between paired desirable and undesirable answers? | forced-choice logprob margin |
+| E017 | Can alpha be calibrated across behaviors and layers? | calibrated coefficient sweep |
+| E018 | Which token positions make steering causal? | position-mode forced-choice ablation |
 
 ## Campaign Structure
 
@@ -98,6 +101,11 @@ Primary campaigns should be stratified by:
 | `groups` | named layer groups for multi-layer steering |
 | `source_layers` | layers used to build transfer directions |
 | `target_layers` | layers used to evaluate transfer directions |
+| `alpha_coefficients` | calibrated alpha multipliers for E017 |
+| `scale_method` | calibration scale definition for E017 |
+| `scale_fraction` | residual-norm fraction used by E017 when applicable |
+| `position_modes` | token-position hook modes for E018 |
+| `logprob_batch_size` | batch size for forced-choice conditional logprob scoring |
 | `output_dir` | root for run artifacts |
 
 ## E001 Mean Direction
@@ -908,6 +916,136 @@ off-diagonal transfer means the direction is stable across the residual stream.
 Large late-layer gaps may be useful for monitoring, while earlier transferable
 directions may be preferable for steering if they avoid output-style artifacts.
 
+## E016 Forced-Choice CAA
+
+### Research Question
+
+E016 asks whether steering changes the model's preference between the benchmark
+paired answers without relying on free-generation sampling or keyword markers.
+
+For each contrast pair, the model scores:
+
+```text
+margin = log P(desirable_answer | prompt, steering)
+       - log P(undesirable_answer | prompt, steering)
+```
+
+The positive side of LatentBehaviorBench is treated as the undesirable answer
+and the negative side as the desirable answer.
+
+### Inputs
+
+- behavior/origin/layer entries;
+- train/eval split over contrast pairs;
+- activation view;
+- raw alpha schedule;
+- forced-choice logprob batch size.
+
+### Procedure
+
+1. Build a CAA direction from the discovery split.
+2. For each held-out contrast pair, reconstruct the shared prompt and the two
+   assistant completions.
+3. Score both completions under every alpha.
+4. Aggregate preference accuracy and preference margin by entry and alpha.
+
+### Metrics
+
+| Metric | Interpretation |
+| --- | --- |
+| `mean_preference_accuracy` | fraction where desirable answer has higher mean logprob |
+| `mean_preference_margin` | normalized desirable-minus-undesirable logprob gap |
+| `delta_margin_vs_alpha0` | causal shift relative to no steering |
+| `mean_same_prompt` | whether paired answers share the same prompt |
+
+### Interpretation
+
+E016 is the first choice when free-generation markers are noisy. A strong
+result means the steering direction moves the paired-answer likelihood margin
+toward the desirable answer. If E016 is weak, free-generation changes should be
+treated as style, length, or sampling artifacts until proven otherwise.
+
+## E017 Calibrated Alpha
+
+### Research Question
+
+E017 asks whether raw alpha schedules are comparable across layers and
+behaviors. A raw alpha of `2.0` may be tiny for one layer and excessive for
+another, so this experiment scores forced-choice margins under calibrated
+coefficients.
+
+### Inputs
+
+- behavior/origin/layer entries;
+- `scale_method`, such as `mean_residual_norm`;
+- `scale_fraction` for residual-norm calibration;
+- `alpha_coefficients`;
+- forced-choice scoring settings.
+
+### Procedure
+
+1. Build the target CAA direction.
+2. Estimate a calibration scale on the discovery split.
+3. Convert each coefficient into a raw alpha.
+4. Run the same forced-choice scoring protocol as E016.
+
+### Metrics
+
+| Metric | Interpretation |
+| --- | --- |
+| `alpha_value` | calibrated coefficient |
+| `calibration_scale` | raw-alpha scale for the entry |
+| `delta_margin_vs_alpha0` | forced-choice causal shift |
+| `mean_preference_accuracy` | desirable-answer preference rate |
+
+### Interpretation
+
+E017 separates real steering effects from arbitrary raw-alpha scale choices.
+If calibrated coefficients preserve the best E016 effects, the intervention is
+more robust. If the effect disappears after calibration, the original result may
+depend on layer-specific norm artifacts.
+
+## E018 Position Steering
+
+### Research Question
+
+E018 asks which token positions need the steering hook. The supported modes are:
+
+- `all`: every sequence position;
+- `prompt`: prompt tokens only;
+- `last_prompt`: the final prompt token;
+- `answer`: completion tokens only;
+- `first_answer`: the first completion token.
+
+### Inputs
+
+- one or more behavior/origin/layer entries;
+- raw alpha schedule;
+- position mode list;
+- forced-choice scoring settings.
+
+### Procedure
+
+1. Build the target CAA direction.
+2. Score held-out paired answers under every alpha and position mode.
+3. Compare preference-margin deltas across modes.
+
+### Metrics
+
+| Metric | Interpretation |
+| --- | --- |
+| `position_mode` | hook placement policy |
+| `alpha` | raw steering coefficient |
+| `delta_margin_vs_alpha0` | causal shift for the position mode |
+| `mean_preference_accuracy` | desirable-answer preference rate |
+
+### Interpretation
+
+E018 tells whether the effect comes from prompt-state steering, answer-state
+steering, or boundary-token perturbation. If only `all` works, the intervention
+may be diffuse. If `last_prompt` or `first_answer` works, the effect is more
+localized and easier to test on larger models.
+
 ## Cross-Experiment Reading
 
 The experiments should be interpreted together:
@@ -929,6 +1067,9 @@ The experiments should be interpreted together:
 | E013 dynamic better than always-on | monitor-gated steering reduces unnecessary intervention |
 | E014 window weak | single-layer steering is sufficient |
 | E015 late-layer transfer strong | behavior signal is stable in later residual stream layers |
+| E016 strong, E004/E007 weak | behavior changes likelihood before it changes free generations |
+| E017 strong where E016 strong | effect is not raw-alpha scale artifact |
+| E018 localized mode strong | steering can be narrowed to specific token positions |
 | Source-backed weak, synthetic strong | likely templating or data-origin artifact |
 
 ## Campaign Report Checklist
@@ -956,4 +1097,7 @@ Every campaign summary should state:
 - E013 dynamic gate firing rate and effect;
 - E014 single-layer versus multi-layer comparison;
 - E015 source-target layer transfer matrix;
+- E016 forced-choice preference-margin shift;
+- E017 calibration scale and coefficient response;
+- E018 position-mode localization;
 - known caveats and failed controls.

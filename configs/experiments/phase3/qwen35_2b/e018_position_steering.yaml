@@ -1,0 +1,24 @@
+name: phase3_qwen35_2b_e018_position_steering
+dataset: configs/data/latent_behavior_bench.yaml
+model: configs/models/qwen35_2b.yaml
+backend: qwen
+seed: 17
+train_fraction: 0.7
+train_limit: 1000000
+eval_limit: 1000000
+pair_limit: 1000000
+logprob_batch_size: 8
+alphas: [-2.0, -1.0, 0.0, 1.0, 2.0]
+position_modes:
+  - all
+  - prompt
+  - last_prompt
+  - answer
+  - first_answer
+entries:
+  - name: sycophancy_source_l18
+    behavior: sycophancy
+    origin: source_backed_contrasts
+    layer: 18
+    activation_view: assistant_answer_mean
+output_dir: runs_phase3_qwen35_2b_final

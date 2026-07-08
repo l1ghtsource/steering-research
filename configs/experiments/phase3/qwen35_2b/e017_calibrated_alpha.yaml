@@ -1,0 +1,36 @@
+name: phase3_qwen35_2b_e017_calibrated_alpha
+dataset: configs/data/latent_behavior_bench.yaml
+model: configs/models/qwen35_2b.yaml
+backend: qwen
+seed: 17
+train_fraction: 0.7
+train_limit: 1000000
+eval_limit: 1000000
+pair_limit: 1000000
+position_mode: all
+logprob_batch_size: 8
+scale_method: mean_residual_norm
+scale_fraction: 0.02
+alpha_coefficients: [-2.0, -1.0, -0.5, 0.0, 0.5, 1.0, 2.0]
+entries:
+  - name: hallucination_source_l23
+    behavior: hallucination
+    origin: source_backed_contrasts
+    layer: 23
+    activation_view: assistant_answer_mean
+  - name: sycophancy_source_l18
+    behavior: sycophancy
+    origin: source_backed_contrasts
+    layer: 18
+    activation_view: assistant_answer_mean
+  - name: premature_refusal_source_l12
+    behavior: premature_refusal
+    origin: source_backed_contrasts
+    layer: 12
+    activation_view: assistant_answer_mean
+  - name: unsafe_planning_source_l23
+    behavior: unsafe_planning
+    origin: source_backed_contrasts
+    layer: 23
+    activation_view: assistant_answer_mean
+output_dir: runs_phase3_qwen35_2b_final

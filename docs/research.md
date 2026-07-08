@@ -67,7 +67,10 @@ behavior more effectively or more robustly.
 | Can steering be gated by a monitor instead of applied to every prompt? | E013 |
 | Does multi-layer intervention outperform a single hook? | E014 |
 | Is behavior separation stable across residual stream layers? | E015 |
-| Do gains survive held-out evaluation and control buckets? | E004-E015 |
+| Does steering change model preference between paired desirable and undesirable answers? | E016 |
+| Are raw alpha schedules comparable across behaviors and layers? | E017 |
+| Which token positions carry the causal intervention effect? | E018 |
+| Do gains survive held-out evaluation and control buckets? | E004-E018 |
 
 ## Data Substrate
 
@@ -165,6 +168,12 @@ should satisfy multiple constraints:
   default intervention.
 - E015 maps which layers preserve the behavior direction and which layers are
   layer-local artifacts.
+- E016 shows a positive forced-choice margin shift toward the desirable answer
+  under steering.
+- E017 shows that calibrated alpha schedules preserve the useful effect while
+  avoiding layer-scale artifacts.
+- E018 localizes whether steering should affect prompt states, answer states,
+  boundary tokens, or all positions.
 - Reports keep source-backed and synthetic evidence separate.
 - All runs produce complete `manifest.json`, `metrics.jsonl`, `summary.json`,
   `report.md`, `run.log`, and dashboard artifacts.
@@ -185,6 +194,10 @@ modes include:
 - causal controls move the metric as much as the intended intervention;
 - monitor-gated steering never fires or fires on nearly every prompt;
 - multi-layer hooks amplify degeneration rather than behavior movement;
+- forced-choice margins move opposite to the claimed suppression direction;
+- calibrated alpha removes an apparent raw-alpha effect;
+- position-specific steering shows the effect comes from generic prompt
+  perturbation rather than answer-relevant states;
 - source-backed and synthetic evidence disagree;
 - effects appear only at one alpha and do not form a dose-response curve.
 

@@ -128,6 +128,224 @@ def _write_generation_outputs(
     write_static_dashboard(logger.run_dir.parent)
 
 
+def _example_prompt_completion(example: Any) -> tuple[str, str]:
+    return f"{example.prompt_text}\nassistant:", f" {example.assistant_text}"
+
+
+def _choice_prompts_and_completions(pair: Any) -> tuple[str, str, str, str, bool]:
+    same_prompt = pair.positive.prompt_text == pair.negative.prompt_text
+    if same_prompt:
+        prompt, positive_completion = _example_prompt_completion(pair.positive)
+        _negative_prompt, negative_completion = _example_prompt_completion(pair.negative)
+        return prompt, positive_completion, prompt, negative_completion, True
+    positive_prompt, positive_completion = _example_prompt_completion(pair.positive)
+    negative_prompt, negative_completion = _example_prompt_completion(pair.negative)
+    return positive_prompt, positive_completion, negative_prompt, negative_completion, False
+
+
+def _score_forced_choice_pair(
+    backend: Any,
+    pair: Any,
+    steering: tuple[int, np.ndarray, float] | None,
+    position_mode: str,
+) -> dict[str, Any]:
+    (
+        positive_prompt,
+        positive_completion,
+        negative_prompt,
+        negative_completion,
+        same_prompt,
+    ) = _choice_prompts_and_completions(pair)
+    positive = backend.sequence_logprob(
+        positive_prompt,
+        positive_completion,
+        steering=steering,
+        position_mode=position_mode,
+    )
+    negative = backend.sequence_logprob(
+        negative_prompt,
+        negative_completion,
+        steering=steering,
+        position_mode=position_mode,
+    )
+    preference_margin = float(negative.mean_logprob - positive.mean_logprob)
+    total_preference_margin = float(negative.logprob - positive.logprob)
+    return {
+        "contrast_id": pair.contrast.contrast_id,
+        "positive_example_id": pair.positive.id,
+        "negative_example_id": pair.negative.id,
+        "same_prompt": same_prompt,
+        "positive_logprob": positive.logprob,
+        "negative_logprob": negative.logprob,
+        "positive_mean_logprob": positive.mean_logprob,
+        "negative_mean_logprob": negative.mean_logprob,
+        "positive_tokens": positive.token_count,
+        "negative_tokens": negative.token_count,
+        "preference_margin": preference_margin,
+        "total_preference_margin": total_preference_margin,
+        "preference_correct": float(preference_margin > 0.0),
+        "positive_completion": positive_completion.strip(),
+        "negative_completion": negative_completion.strip(),
+    }
+
+
+def _forced_choice_row_from_results(
+    pair: Any,
+    positive_result: Any,
+    negative_result: Any,
+    positive_completion: str,
+    negative_completion: str,
+    same_prompt: bool,
+) -> dict[str, Any]:
+    preference_margin = float(negative_result.mean_logprob - positive_result.mean_logprob)
+    total_preference_margin = float(negative_result.logprob - positive_result.logprob)
+    return {
+        "contrast_id": pair.contrast.contrast_id,
+        "positive_example_id": pair.positive.id,
+        "negative_example_id": pair.negative.id,
+        "same_prompt": same_prompt,
+        "positive_logprob": positive_result.logprob,
+        "negative_logprob": negative_result.logprob,
+        "positive_mean_logprob": positive_result.mean_logprob,
+        "negative_mean_logprob": negative_result.mean_logprob,
+        "positive_tokens": positive_result.token_count,
+        "negative_tokens": negative_result.token_count,
+        "preference_margin": preference_margin,
+        "total_preference_margin": total_preference_margin,
+        "preference_correct": float(preference_margin > 0.0),
+        "positive_completion": positive_completion.strip(),
+        "negative_completion": negative_completion.strip(),
+    }
+
+
+def _score_forced_choice_pairs(
+    backend: Any,
+    pairs: list[Any],
+    steering: tuple[int, np.ndarray, float] | None,
+    position_mode: str,
+    batch_size: int,
+) -> list[dict[str, Any]]:
+    batch_logprob = getattr(backend, "sequence_logprob_batch", None)
+    if not callable(batch_logprob):
+        return [_score_forced_choice_pair(backend, pair, steering, position_mode) for pair in pairs]
+    rows: list[dict[str, Any]] = []
+    chunk_size = max(1, batch_size)
+    for start in range(0, len(pairs), chunk_size):
+        chunk = pairs[start : start + chunk_size]
+        prompts: list[str] = []
+        completions: list[str] = []
+        metadata: list[tuple[Any, str, str, bool]] = []
+        for pair in chunk:
+            (
+                positive_prompt,
+                positive_completion,
+                negative_prompt,
+                negative_completion,
+                same_prompt,
+            ) = _choice_prompts_and_completions(pair)
+            prompts.extend([positive_prompt, negative_prompt])
+            completions.extend([positive_completion, negative_completion])
+            metadata.append((pair, positive_completion, negative_completion, same_prompt))
+        results = batch_logprob(
+            prompts,
+            completions,
+            steering=steering,
+            position_mode=position_mode,
+        )
+        for index, (pair, positive_completion, negative_completion, same_prompt) in enumerate(
+            metadata
+        ):
+            rows.append(
+                _forced_choice_row_from_results(
+                    pair,
+                    results[2 * index],
+                    results[2 * index + 1],
+                    positive_completion,
+                    negative_completion,
+                    same_prompt,
+                )
+            )
+    return rows
+
+
+def _aggregate_forced_choice_rows(
+    rows: list[dict[str, Any]],
+    keys: list[str],
+    alpha_key: str = "alpha",
+) -> list[dict[str, Any]]:
+    grouped: dict[tuple[object, ...], list[dict[str, Any]]] = {}
+    for row in rows:
+        grouped.setdefault(tuple(row[key] for key in keys), []).append(row)
+    aggregate_rows: list[dict[str, Any]] = []
+    for key_values, group in sorted(grouped.items(), key=lambda item: tuple(map(str, item[0]))):
+        out = dict(zip(keys, key_values, strict=True))
+        margins = [_as_float(row["preference_margin"]) for row in group]
+        out.update(
+            {
+                "n": len(group),
+                "mean_preference_accuracy": float(
+                    np.mean([_as_float(row["preference_correct"]) for row in group])
+                ),
+                "mean_preference_margin": float(np.mean(margins)),
+                "median_preference_margin": float(np.median(margins)),
+                "mean_total_preference_margin": float(
+                    np.mean([_as_float(row["total_preference_margin"]) for row in group])
+                ),
+                "mean_positive_mean_logprob": float(
+                    np.mean([_as_float(row["positive_mean_logprob"]) for row in group])
+                ),
+                "mean_negative_mean_logprob": float(
+                    np.mean([_as_float(row["negative_mean_logprob"]) for row in group])
+                ),
+                "mean_positive_tokens": float(
+                    np.mean([_as_float(row["positive_tokens"]) for row in group])
+                ),
+                "mean_negative_tokens": float(
+                    np.mean([_as_float(row["negative_tokens"]) for row in group])
+                ),
+                "mean_same_prompt": float(
+                    np.mean([1.0 if bool(row["same_prompt"]) else 0.0 for row in group])
+                ),
+            }
+        )
+        aggregate_rows.append(out)
+    baseline_keys = [key for key in keys if key != alpha_key]
+    baselines: dict[tuple[object, ...], float] = {}
+    for row in aggregate_rows:
+        if abs(_as_float(row[alpha_key])) <= 1e-12:
+            baselines[tuple(row[key] for key in baseline_keys)] = _as_float(
+                row["mean_preference_margin"]
+            )
+    for row in aggregate_rows:
+        baseline = baselines.get(tuple(row[key] for key in baseline_keys))
+        row["delta_margin_vs_alpha0"] = (
+            _as_float(row["mean_preference_margin"]) - baseline
+            if baseline is not None
+            else float("nan")
+        )
+    return aggregate_rows
+
+
+def _write_forced_choice_outputs(
+    logger: RunLogger,
+    rows: list[dict[str, Any]],
+    aggregate_rows: list[dict[str, Any]],
+    summary: dict[str, Any],
+    title: str,
+) -> None:
+    with (logger.run_dir / "tables" / "forced_choice.csv").open(
+        "w", encoding="utf-8", newline=""
+    ) as handle:
+        fieldnames = sorted({key for row in rows for key in row}) if rows else ["empty"]
+        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(rows)
+    logger.write_json("summary.json", summary)
+    logger.write_json("aggregate.json", {"rows": aggregate_rows})
+    write_experiment_report(logger.run_dir / "report.md", title, summary, aggregate_rows[:100])
+    write_static_dashboard(logger.run_dir.parent)
+
+
 def _generate_vector_sweep(
     backend: Any,
     examples: list[Any],
@@ -1226,6 +1444,317 @@ def run_e015(repo_root: Path, config_path: Path, backend_kind: str | None = None
         logger.run_dir / "report.md", "E015 Layer-Fraction Transfer", summary, rows
     )
     write_static_dashboard(logger.run_dir.parent)
+    return logger.run_dir
+
+
+def _entry_pairs(
+    store: BenchmarkStore,
+    behavior: str,
+    origin: str,
+    train_fraction: float,
+    train_limit: int,
+    eval_limit: int,
+    pair_limit: int,
+) -> tuple[list[Any], list[Any]]:
+    pairs = store.pairs(behavior=behavior, origin_bucket=origin, limit=pair_limit)
+    train_pairs, eval_pairs = _split_train_eval(pairs, train_fraction)
+    train_pairs = train_pairs[:train_limit]
+    eval_pairs = eval_pairs[:eval_limit]
+    if not eval_pairs:
+        eval_pairs = train_pairs
+    return train_pairs, eval_pairs
+
+
+def _log_forced_choice_sweep(
+    backend: Any,
+    eval_pairs: list[Any],
+    layer: int,
+    vector: np.ndarray,
+    alpha_values: list[tuple[str, float, float]],
+    position_modes: list[str],
+    logprob_batch_size: int,
+    logger: RunLogger,
+    extra: dict[str, Any],
+) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for alpha_label, alpha_value, raw_alpha in alpha_values:
+        steering = (layer, vector, raw_alpha)
+        for position_mode in position_modes:
+            scored_rows = _score_forced_choice_pairs(
+                backend,
+                eval_pairs,
+                steering,
+                position_mode,
+                logprob_batch_size,
+            )
+            for scored_row in scored_rows:
+                row = {
+                    **extra,
+                    "alpha": raw_alpha,
+                    "alpha_label": alpha_label,
+                    "alpha_value": alpha_value,
+                    "position_mode": position_mode,
+                    **scored_row,
+                }
+                rows.append(row)
+                logger.log_metric(row)
+    return rows
+
+
+def _calibration_scale(
+    backend: Any,
+    pairs: list[Any],
+    request: ActivationRequest,
+    direction: DirectionResult,
+    method: str,
+    scale_fraction: float,
+) -> float:
+    if method == "mean_abs_projection_gap":
+        gaps = []
+        for pair in pairs:
+            pos = backend.activation(pair.positive, request)
+            neg = backend.activation(pair.negative, request)
+            gaps.append(abs(float((pos - neg) @ direction.unit_direction)))
+        return max(float(np.mean(gaps)) if gaps else 0.0, 1e-8)
+    if method == "direction_norm":
+        return max(float(np.linalg.norm(direction.direction)), 1e-8)
+    if method == "mean_residual_norm":
+        norms = []
+        for pair in pairs:
+            norms.append(float(np.linalg.norm(backend.activation(pair.positive, request))))
+            norms.append(float(np.linalg.norm(backend.activation(pair.negative, request))))
+        return max((float(np.mean(norms)) if norms else 0.0) * scale_fraction, 1e-8)
+    msg = f"Unknown calibration scale method: {method}"
+    raise ValueError(msg)
+
+
+def run_e016(repo_root: Path, config_path: Path, backend_kind: str | None = None) -> Path:
+    cfg = load_yaml(config_path)
+    backend_name = backend_kind or str(cfg.get("backend", "qwen"))
+    backend = build_backend(backend_name, resolve_path(str(cfg["model"]), repo_root))
+    store = _load_benchmark(repo_root, str(cfg["dataset"]))
+    logger = RunLogger(
+        resolve_path(str(cfg.get("output_dir", "runs")), repo_root),
+        str(cfg["name"]),
+        {"config": cfg, "backend": backend.name, "benchmark": store.validate()},
+    )
+    rows: list[dict[str, Any]] = []
+    for entry in cfg["entries"]:
+        behavior = str(entry["behavior"])
+        origin = str(entry["origin"])
+        layer = int(entry["layer"])
+        activation_view = str(entry["activation_view"])
+        train_pairs, eval_pairs = _entry_pairs(
+            store,
+            behavior,
+            origin,
+            float(entry.get("train_fraction", cfg.get("train_fraction", 0.7))),
+            int(entry.get("train_limit", cfg.get("train_limit", 1_000_000))),
+            int(entry.get("eval_limit", cfg.get("eval_limit", 1_000_000))),
+            int(entry.get("pair_limit", cfg.get("pair_limit", 1_000_000))),
+        )
+        if not train_pairs or not eval_pairs:
+            continue
+        request = ActivationRequest(layer=layer, activation_view=activation_view)
+        direction = build_direction(backend, train_pairs, request)
+        alphas = [float(alpha) for alpha in cfg["alphas"]]
+        rows.extend(
+            _log_forced_choice_sweep(
+                backend,
+                eval_pairs,
+                layer,
+                direction.unit_direction,
+                [(str(alpha), alpha, alpha) for alpha in alphas],
+                [str(cfg.get("position_mode", "all"))],
+                int(cfg.get("logprob_batch_size", 4)),
+                logger,
+                {
+                    "experiment": cfg["name"],
+                    "entry": str(entry.get("name", f"{behavior}_{origin}_{layer}")),
+                    "behavior": behavior,
+                    "origin": origin,
+                    "layer": layer,
+                    "activation_view": activation_view,
+                    "n_train_pairs": len(train_pairs),
+                    "n_eval_pairs": len(eval_pairs),
+                },
+            )
+        )
+    aggregate_rows = _aggregate_forced_choice_rows(
+        rows, ["entry", "behavior", "origin", "layer", "activation_view", "position_mode", "alpha"]
+    )
+    best = max(aggregate_rows, key=lambda row: _as_float(row["delta_margin_vs_alpha0"]), default={})
+    summary = {
+        "experiment": cfg["name"],
+        "backend": backend.name,
+        "rows": len(rows),
+        "entries": len(cfg["entries"]),
+        "alphas": cfg["alphas"],
+        "best_entry": best.get("entry", ""),
+        "best_alpha": best.get("alpha", ""),
+        "best_delta_margin_vs_alpha0": best.get("delta_margin_vs_alpha0", float("nan")),
+    }
+    _write_forced_choice_outputs(logger, rows, aggregate_rows, summary, "E016 Forced-Choice CAA")
+    return logger.run_dir
+
+
+def run_e017(repo_root: Path, config_path: Path, backend_kind: str | None = None) -> Path:
+    cfg = load_yaml(config_path)
+    backend_name = backend_kind or str(cfg.get("backend", "qwen"))
+    backend = build_backend(backend_name, resolve_path(str(cfg["model"]), repo_root))
+    store = _load_benchmark(repo_root, str(cfg["dataset"]))
+    logger = RunLogger(
+        resolve_path(str(cfg.get("output_dir", "runs")), repo_root),
+        str(cfg["name"]),
+        {"config": cfg, "backend": backend.name, "benchmark": store.validate()},
+    )
+    rows: list[dict[str, Any]] = []
+    method = str(cfg.get("scale_method", "mean_abs_projection_gap"))
+    scale_fraction = float(cfg.get("scale_fraction", 0.05))
+    for entry in cfg["entries"]:
+        behavior = str(entry["behavior"])
+        origin = str(entry["origin"])
+        layer = int(entry["layer"])
+        activation_view = str(entry["activation_view"])
+        train_pairs, eval_pairs = _entry_pairs(
+            store,
+            behavior,
+            origin,
+            float(entry.get("train_fraction", cfg.get("train_fraction", 0.7))),
+            int(entry.get("train_limit", cfg.get("train_limit", 1_000_000))),
+            int(entry.get("eval_limit", cfg.get("eval_limit", 1_000_000))),
+            int(entry.get("pair_limit", cfg.get("pair_limit", 1_000_000))),
+        )
+        if not train_pairs or not eval_pairs:
+            continue
+        request = ActivationRequest(layer=layer, activation_view=activation_view)
+        direction = build_direction(backend, train_pairs, request)
+        scale = _calibration_scale(backend, train_pairs, request, direction, method, scale_fraction)
+        coefficients = [float(alpha) for alpha in cfg["alpha_coefficients"]]
+        rows.extend(
+            _log_forced_choice_sweep(
+                backend,
+                eval_pairs,
+                layer,
+                direction.unit_direction,
+                [(str(coef), coef, coef * scale) for coef in coefficients],
+                [str(cfg.get("position_mode", "all"))],
+                int(cfg.get("logprob_batch_size", 4)),
+                logger,
+                {
+                    "experiment": cfg["name"],
+                    "entry": str(entry.get("name", f"{behavior}_{origin}_{layer}")),
+                    "behavior": behavior,
+                    "origin": origin,
+                    "layer": layer,
+                    "activation_view": activation_view,
+                    "scale_method": method,
+                    "calibration_scale": scale,
+                    "n_train_pairs": len(train_pairs),
+                    "n_eval_pairs": len(eval_pairs),
+                },
+            )
+        )
+    aggregate_rows = _aggregate_forced_choice_rows(
+        rows,
+        [
+            "entry",
+            "behavior",
+            "origin",
+            "layer",
+            "activation_view",
+            "scale_method",
+            "calibration_scale",
+            "position_mode",
+            "alpha_value",
+        ],
+        alpha_key="alpha_value",
+    )
+    best = max(aggregate_rows, key=lambda row: _as_float(row["delta_margin_vs_alpha0"]), default={})
+    summary = {
+        "experiment": cfg["name"],
+        "backend": backend.name,
+        "rows": len(rows),
+        "entries": len(cfg["entries"]),
+        "scale_method": method,
+        "scale_fraction": scale_fraction,
+        "alpha_coefficients": cfg["alpha_coefficients"],
+        "best_entry": best.get("entry", ""),
+        "best_alpha_coefficient": best.get("alpha_value", ""),
+        "best_delta_margin_vs_alpha0": best.get("delta_margin_vs_alpha0", float("nan")),
+    }
+    _write_forced_choice_outputs(logger, rows, aggregate_rows, summary, "E017 Calibrated Alpha")
+    return logger.run_dir
+
+
+def run_e018(repo_root: Path, config_path: Path, backend_kind: str | None = None) -> Path:
+    cfg = load_yaml(config_path)
+    backend_name = backend_kind or str(cfg.get("backend", "qwen"))
+    backend = build_backend(backend_name, resolve_path(str(cfg["model"]), repo_root))
+    store = _load_benchmark(repo_root, str(cfg["dataset"]))
+    logger = RunLogger(
+        resolve_path(str(cfg.get("output_dir", "runs")), repo_root),
+        str(cfg["name"]),
+        {"config": cfg, "backend": backend.name, "benchmark": store.validate()},
+    )
+    rows: list[dict[str, Any]] = []
+    for entry in cfg["entries"]:
+        behavior = str(entry["behavior"])
+        origin = str(entry["origin"])
+        layer = int(entry["layer"])
+        activation_view = str(entry["activation_view"])
+        train_pairs, eval_pairs = _entry_pairs(
+            store,
+            behavior,
+            origin,
+            float(entry.get("train_fraction", cfg.get("train_fraction", 0.7))),
+            int(entry.get("train_limit", cfg.get("train_limit", 1_000_000))),
+            int(entry.get("eval_limit", cfg.get("eval_limit", 1_000_000))),
+            int(entry.get("pair_limit", cfg.get("pair_limit", 1_000_000))),
+        )
+        if not train_pairs or not eval_pairs:
+            continue
+        request = ActivationRequest(layer=layer, activation_view=activation_view)
+        direction = build_direction(backend, train_pairs, request)
+        alphas = [float(alpha) for alpha in cfg["alphas"]]
+        rows.extend(
+            _log_forced_choice_sweep(
+                backend,
+                eval_pairs,
+                layer,
+                direction.unit_direction,
+                [(str(alpha), alpha, alpha) for alpha in alphas],
+                [str(mode) for mode in cfg["position_modes"]],
+                int(cfg.get("logprob_batch_size", 4)),
+                logger,
+                {
+                    "experiment": cfg["name"],
+                    "entry": str(entry.get("name", f"{behavior}_{origin}_{layer}")),
+                    "behavior": behavior,
+                    "origin": origin,
+                    "layer": layer,
+                    "activation_view": activation_view,
+                    "n_train_pairs": len(train_pairs),
+                    "n_eval_pairs": len(eval_pairs),
+                },
+            )
+        )
+    aggregate_rows = _aggregate_forced_choice_rows(
+        rows, ["entry", "behavior", "origin", "layer", "activation_view", "position_mode", "alpha"]
+    )
+    best = max(aggregate_rows, key=lambda row: _as_float(row["delta_margin_vs_alpha0"]), default={})
+    summary = {
+        "experiment": cfg["name"],
+        "backend": backend.name,
+        "rows": len(rows),
+        "entries": len(cfg["entries"]),
+        "position_modes": cfg["position_modes"],
+        "alphas": cfg["alphas"],
+        "best_position_mode": best.get("position_mode", ""),
+        "best_alpha": best.get("alpha", ""),
+        "best_delta_margin_vs_alpha0": best.get("delta_margin_vs_alpha0", float("nan")),
+    }
+    _write_forced_choice_outputs(logger, rows, aggregate_rows, summary, "E018 Position Steering")
     return logger.run_dir
 
 

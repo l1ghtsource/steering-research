@@ -130,3 +130,6 @@ uv run steering verify-runs --runs-root runs
 | E013 | Dynamic steering | training-free | Activation-gated steering versus always-on |
 | E014 | Multi-layer steering | training-free | Single-layer versus layer-window hooks |
 | E015 | Layer transfer | training-free | Source-layer to target-layer alignment |
+| E016 | Forced-choice CAA | training-free | Logprob preference shift between paired answers |
+| E017 | Calibrated alpha | training-free | Alpha in behavior-comparable activation units |
+| E018 | Position steering | training-free | Prompt/answer token-position intervention ablation |

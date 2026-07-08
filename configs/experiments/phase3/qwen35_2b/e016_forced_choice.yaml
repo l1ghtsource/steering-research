@@ -1,0 +1,69 @@
+name: phase3_qwen35_2b_e016_forced_choice
+dataset: configs/data/latent_behavior_bench.yaml
+model: configs/models/qwen35_2b.yaml
+backend: qwen
+seed: 17
+train_fraction: 0.7
+train_limit: 1000000
+eval_limit: 1000000
+pair_limit: 1000000
+position_mode: all
+logprob_batch_size: 8
+alphas: [-4.0, -2.0, -1.0, 0.0, 1.0, 2.0, 4.0]
+entries:
+  - name: hallucination_source_l23
+    behavior: hallucination
+    origin: source_backed_contrasts
+    layer: 23
+    activation_view: assistant_answer_mean
+  - name: hallucination_synthetic_l23
+    behavior: hallucination
+    origin: synthetic_contrasts
+    layer: 23
+    activation_view: assistant_answer_mean
+  - name: sycophancy_source_l18
+    behavior: sycophancy
+    origin: source_backed_contrasts
+    layer: 18
+    activation_view: assistant_answer_mean
+  - name: sycophancy_synthetic_l18
+    behavior: sycophancy
+    origin: synthetic_contrasts
+    layer: 18
+    activation_view: assistant_answer_mean
+  - name: premature_refusal_source_l12
+    behavior: premature_refusal
+    origin: source_backed_contrasts
+    layer: 12
+    activation_view: assistant_answer_mean
+  - name: premature_refusal_synthetic_l12
+    behavior: premature_refusal
+    origin: synthetic_contrasts
+    layer: 12
+    activation_view: assistant_answer_mean
+  - name: deception_source_l18
+    behavior: deception
+    origin: source_backed_contrasts
+    layer: 18
+    activation_view: assistant_answer_mean
+  - name: deception_synthetic_l18
+    behavior: deception
+    origin: synthetic_contrasts
+    layer: 18
+    activation_view: assistant_answer_mean
+  - name: unsafe_planning_source_l23
+    behavior: unsafe_planning
+    origin: source_backed_contrasts
+    layer: 23
+    activation_view: assistant_answer_mean
+  - name: unsafe_planning_synthetic_l23
+    behavior: unsafe_planning
+    origin: synthetic_contrasts
+    layer: 23
+    activation_view: assistant_answer_mean
+  - name: overconfidence_synthetic_l18
+    behavior: overconfidence
+    origin: synthetic_contrasts
+    layer: 18
+    activation_view: assistant_answer_mean
+output_dir: runs_phase3_qwen35_2b_final
