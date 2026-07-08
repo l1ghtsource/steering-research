@@ -64,6 +64,15 @@ Use the artifacts differently for each experiment family:
 | E004 | alpha-level behavior markers | `tables/generations.csv` |
 | E005 | selected feature and alpha response | generated text and top feature list |
 | E006 | adapter path and training metrics | held-out behavior eval after loading adapter |
+| E007 | entry-by-alpha best-layer response | generated text, length, and repetition shifts |
+| E008 | source-target specificity matrix | strongest off-diagonal behavior confounds |
+| E009 | variant-by-alpha causal controls | whether controls match the intended effect |
+| E010 | feature-by-alpha causal sweep | top feature outputs and repetition side effects |
+| E011 | raw versus orthogonalized steering | nuisance marker and style reduction |
+| E012 | train-origin by eval-origin matrix | cross-origin sign and margin stability |
+| E013 | always-on versus dynamic steering | gate firing rate and missed-risk examples |
+| E014 | layer-group by alpha response | single-layer versus windowed hook side effects |
+| E015 | source-layer by target-layer matrix | diagonal strength and late-layer transfer |
 
 ## Campaign Summary
 
@@ -78,4 +87,5 @@ After a campaign, the written interpretation should include:
 - whether behavior changes are monotonic;
 - whether refusal, length, or generic style explains the result;
 - comparison against LoRA SFT;
+- specificity, control, origin-transfer, and layer-transfer conclusions;
 - unresolved caveats.

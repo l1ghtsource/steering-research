@@ -58,8 +58,16 @@ behavior more effectively or more robustly.
 | Does dense CAA steering move generated behavior in the intended direction? | E004 |
 | Does sparse SAE decoder-vector steering produce a cleaner intervention? | E005 |
 | How does training-free steering compare with LoRA SFT on the same data? | E006 |
-| Are effects stable across source-backed and synthetic contrast origins? | E001-E006 |
-| Do gains survive held-out evaluation and control buckets? | E004-E006 |
+| Do best diagnostic layers remain causal under generation? | E007 |
+| Are directions specific to one behavior or shared across axes? | E008 |
+| Do steering effects survive sign, random, shuffled, and unrelated controls? | E009 |
+| Which sparse features are causal rather than only diagnostic? | E010 |
+| Can nuisance behavior axes be removed from a steering direction? | E011 |
+| Are effects stable across source-backed and synthetic contrast origins? | E001-E006, E012 |
+| Can steering be gated by a monitor instead of applied to every prompt? | E013 |
+| Does multi-layer intervention outperform a single hook? | E014 |
+| Is behavior separation stable across residual stream layers? | E015 |
+| Do gains survive held-out evaluation and control buckets? | E004-E015 |
 
 ## Data Substrate
 
@@ -107,11 +115,15 @@ flowchart TD
   E --> G["Feature delta ranking"]
   D --> H["CAA residual steering"]
   G --> I["SAE decoder-vector steering"]
+  D --> M["Specificity and transfer controls"]
+  D --> N["Dynamic and multi-layer steering"]
   A --> J["Good-side supervised rows"]
   J --> K["LoRA SFT baseline"]
   F --> L["Metrics and reports"]
   H --> L
   I --> L
+  M --> L
+  N --> L
   K --> L
 ```
 
@@ -135,6 +147,24 @@ should satisfy multiple constraints:
 - E005 produces a similar or cleaner behavior shift using SAE decoder vectors.
 - E006 improves the target behavior without damaging capability controls,
   safety controls, or unrelated behavior axes.
+- E007 confirms that representation-selected layers remain causal during
+  generation.
+- E008 shows a strong diagonal and interpretable off-diagonal structure rather
+  than uncontrolled generic behavior separation.
+- E009 shows intended steering effects stronger than random, sign-flipped,
+  shuffled-label, and unrelated-behavior controls.
+- E010 identifies sparse features whose decoder vectors cause target movement,
+  not just high contrast deltas.
+- E011 either reduces side effects through orthogonalization or clearly shows
+  that nuisance axes do not explain the target direction.
+- E012 establishes which behavior directions transfer between source-backed and
+  synthetic origins.
+- E013 demonstrates that monitor-gated steering fires on an appropriate subset
+  and reduces unnecessary intervention.
+- E014 determines whether single-layer or multi-layer hooks are the right
+  default intervention.
+- E015 maps which layers preserve the behavior direction and which layers are
+  layer-local artifacts.
 - Reports keep source-backed and synthetic evidence separate.
 - All runs produce complete `manifest.json`, `metrics.jsonl`, `summary.json`,
   `report.md`, `run.log`, and dashboard artifacts.
@@ -150,6 +180,11 @@ modes include:
   target behavior;
 - sparse features are unstable across nearby layers or resamples;
 - LoRA memorizes benchmark phrasing and fails controls;
+- specificity matrices show that a claimed behavior direction is really a
+  generic "bad answer" or "conflict" direction;
+- causal controls move the metric as much as the intended intervention;
+- monitor-gated steering never fires or fires on nearly every prompt;
+- multi-layer hooks amplify degeneration rather than behavior movement;
 - source-backed and synthetic evidence disagree;
 - effects appear only at one alpha and do not form a dose-response curve.
 
@@ -167,5 +202,10 @@ A complete campaign should produce:
 - JSONL metrics for notebooks, DuckDB, or downstream analysis;
 - Markdown reports suitable for manual inspection;
 - saved LoRA adapters for E006;
+- specificity, origin-transfer, and layer-transfer matrices for E008, E012, and
+  E015;
+- control-run aggregates for E009 and orthogonalization comparisons for E011;
+- generation tables for all steering experiments E004, E005, E007, E009, E010,
+  E011, E013, and E014;
 - a written interpretation of which behavior axes are steerable, which are only
   detectable, and which require a different method.

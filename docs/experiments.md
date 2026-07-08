@@ -8,7 +8,10 @@ Every experiment is driven by a YAML config under `configs/experiments/`.
 The config defines the model, benchmark source, behavior axis, split policy,
 activation view, layer set, limits, output directory, and steering schedule.
 
-The six experiment families form one research ladder:
+The experiment families form one research ladder. E001-E006 establish the
+baseline discovery, steering, and training comparison path. E007-E015 extend
+that path with controls, transfer tests, sparse feature sweeps, dynamic
+interventions, and layer-localization ablations.
 
 | ID | Question | Output |
 | --- | --- | --- |
@@ -18,10 +21,27 @@ The six experiment families form one research ladder:
 | E004 | Does dense residual steering change generated behavior? | CAA alpha sweep |
 | E005 | Does sparse feature steering change generated behavior? | SAE decoder-vector alpha sweep |
 | E006 | Does supervised parameter training solve the same task? | LoRA SFT baseline |
+| E007 | Do best E001/E002 layers remain causal under generation? | best-layer CAA sweep |
+| E008 | Are discovered directions behavior-specific or shared across axes? | specificity matrix |
+| E009 | Does the causal effect survive sign, random, shuffled, and unrelated controls? | causal control panel |
+| E010 | Which top Qwen-Scope features have causal leverage? | SAE feature intervention sweep |
+| E011 | Does removing known nuisance directions improve steering specificity? | orthogonalized CAA steering |
+| E012 | Do directions transfer between source-backed and synthetic origins? | origin transfer matrix |
+| E013 | Can steering be gated by an activation monitor instead of applied always? | dynamic steering comparison |
+| E014 | Is steering stronger when applied over a layer window? | multi-layer steering sweep |
+| E015 | How stable is the direction across source and target layers? | layer-transfer matrix |
 
 ## Campaign Structure
 
-For full H200 runs, create a campaign-specific config directory:
+For full H200 runs, create a campaign-specific config directory. The repository
+ships workstation-ready 2B campaign configs under:
+
+```text
+configs/experiments/full/qwen35_2b/
+configs/experiments/phase2/qwen35_2b/
+```
+
+For 9B or 27B H200 runs, mirror the same layout:
 
 ```text
 configs/experiments/h200/qwen35_9b/
@@ -67,6 +87,17 @@ Primary campaigns should be stratified by:
 | `activation_views` | multiple activation extraction views |
 | `eval_bucket` | held-out clean evaluation bucket |
 | `alphas` | steering coefficients |
+| `entries` | named best-layer steering entries for E007 |
+| `sources` | source behavior directions for specificity tests |
+| `target_behaviors` | target axes scored in specificity tests |
+| `target_origins` | target origins scored in specificity tests |
+| `control_behaviors` | nuisance axes removed in orthogonalized steering |
+| `train_origins` | origins used to build directions in transfer tests |
+| `eval_origins` | origins used to evaluate transfer tests |
+| `threshold_quantile` | activation-monitor gate used by dynamic steering |
+| `groups` | named layer groups for multi-layer steering |
+| `source_layers` | layers used to build transfer directions |
+| `target_layers` | layers used to evaluate transfer directions |
 | `output_dir` | root for run artifacts |
 
 ## E001 Mean Direction
@@ -398,6 +429,485 @@ behavior while preserving capability controls, safety controls, calibration, and
 unrelated behavior axes. If it beats steering only by becoming more generally
 refusal-heavy, the result is not a clean behavioral improvement.
 
+## E007 Best-Layer CAA Sweep
+
+### Research Question
+
+E007 asks whether the strongest representation-level layer choices from E001
+and E002 remain useful when used as actual generation-time interventions.
+
+The experiment is a targeted CAA steering pass over a small set of named
+entries:
+
+```yaml
+entries:
+  - name: sycophancy_best
+    behavior: sycophancy
+    origin: source_backed_contrasts
+    layer: 18
+    activation_view: assistant_answer_mean
+```
+
+Each entry builds its own direction, evaluates the same held-out prompt bucket,
+and writes alpha-level aggregates.
+
+### Inputs
+
+- named behavior-origin-layer-view entries;
+- held-out evaluation bucket;
+- dense CAA train limit and evaluation limit;
+- alpha schedule;
+- generation length and batch size.
+
+### Procedure
+
+1. For each entry, load the configured contrast pairs.
+2. Build a dense mean-difference direction at the selected layer and activation
+   view.
+3. Generate held-out prompts at every alpha.
+4. Score generations with transparent behavior markers and style controls.
+5. Aggregate metrics by entry and alpha.
+
+### Metrics
+
+| Metric | Interpretation |
+| --- | --- |
+| `entry` | named best-layer candidate |
+| `alpha` | steering coefficient |
+| `mean_agreement_marker` | sycophancy-style agreement marker |
+| `mean_refusal_marker` | refusal-style marker |
+| `mean_unsafe_planning_marker` | unsafe planning marker |
+| `mean_uncertainty_marker` | uncertainty/calibration marker |
+| `mean_length_tokens` | verbosity shift |
+| `mean_repetition_proxy` | degeneration or repetition proxy |
+
+### Artifacts
+
+- `metrics.jsonl`: generation-level rows;
+- `aggregate.json`: entry-by-alpha table;
+- `tables/generations.csv`: generated text for review;
+- `summary.json` and `report.md`: run metadata and compact report.
+
+### Interpretation
+
+E007 is the first check that a representation-level "best layer" is also
+causal. A strong result has a clear dose-response on the target marker while
+length, repetition, and unrelated markers remain stable. If the target marker is
+flat but repetition or length moves, the direction is diagnostic or stylistic
+rather than a clean behavior controller.
+
+## E008 Specificity Matrix
+
+### Research Question
+
+E008 asks whether a direction discovered for one behavior is specific to that
+behavior or also separates other behavior axes. This matters because a broad
+"bad answer" or "instruction conflict" direction can look strong while being
+too generic for mechanistic claims.
+
+### Inputs
+
+- source behavior directions with explicit origin, layer, and activation view;
+- target behavior list;
+- target origin list;
+- train and evaluation limits.
+
+### Procedure
+
+1. Build one dense direction for each configured source.
+2. For every target behavior and target origin, load target contrast pairs.
+3. Score target positive and negative activations along the source direction.
+4. Log one matrix row per source-target-origin combination.
+
+### Metrics
+
+| Metric | Interpretation |
+| --- | --- |
+| `source_behavior`, `source_origin` | direction being tested |
+| `target_behavior`, `target_origin` | contrast bucket being scored |
+| `direction_accuracy` | fraction of target pairs separated by the source direction |
+| `mean_projection_gap` | signed target separation |
+| `mean_abs_margin` | unsigned separation magnitude |
+| `n_eval_pairs` | target evaluation pair count |
+
+### Artifacts
+
+- `metrics.jsonl`: full specificity matrix;
+- `summary.json`: row count and backend metadata;
+- `report.md`: top matrix rows for manual reading.
+
+### Interpretation
+
+The diagonal should be strong. Off-diagonal strength is not automatically bad:
+some behaviors may share a latent safety/helpfulness axis. It becomes a problem
+when a direction used for a causal claim also strongly activates unrelated
+targets and the generation-level intervention changes generic refusal, length,
+or style more than the target behavior.
+
+## E009 Causal Controls
+
+### Research Question
+
+E009 asks whether the generation-level effect of a CAA direction survives
+basic causal controls. It compares the intended direction against:
+
+- the opposite sign;
+- a norm-matched random vector;
+- a shuffled-label direction;
+- an unrelated behavior direction;
+- a same-behavior synthetic-origin direction.
+
+### Inputs
+
+- primary behavior and origin;
+- synthetic origin for same-behavior comparison;
+- unrelated behavior and origin;
+- held-out evaluation bucket;
+- layer, activation view, alpha schedule, and generation settings.
+
+### Procedure
+
+1. Build the primary dense direction.
+2. Build control directions with matched layer and norm where possible.
+3. Generate the same held-out prompts under every variant and alpha.
+4. Score all outputs with the same marker stack.
+5. Aggregate by variant and alpha.
+
+### Metrics
+
+| Metric | Interpretation |
+| --- | --- |
+| `variant` | `base`, `opposite_sign`, `random_norm_matched`, `shuffled_labels`, `unrelated_*`, or synthetic control |
+| `alpha` | steering coefficient |
+| generation markers | target and nuisance response changes |
+| `mean_length_tokens` | verbosity control |
+| `mean_repetition_proxy` | degeneration control |
+
+### Artifacts
+
+- `metrics.jsonl`: generation-level rows for all variants;
+- `aggregate.json`: variant-by-alpha summary;
+- `tables/generations.csv`: generated text and variant labels;
+- `summary.json` and `report.md`: campaign-readable output.
+
+### Interpretation
+
+A credible causal effect should be stronger and more directionally coherent for
+the intended `base` variant than for random, shuffled, or unrelated controls.
+If controls move the target marker by a similar amount, the effect should be
+reported as weak or confounded.
+
+## E010 SAE Feature Sweep
+
+### Research Question
+
+E010 asks whether several top Qwen-Scope features have causal leverage, instead
+of selecting a single best feature once and overfitting the interpretation.
+
+### Inputs
+
+- behavior and origin;
+- layer and activation view;
+- `top_features`;
+- held-out evaluation bucket;
+- alpha schedule and generation settings.
+
+### Procedure
+
+1. Encode positive and negative contrast activations with the matching
+   Qwen-Scope SAE.
+2. Rank features by signed behavior delta.
+3. Retrieve each selected feature decoder vector.
+4. Generate held-out prompts under each feature and alpha.
+5. Aggregate by feature rank, feature index, and alpha.
+
+### Metrics
+
+| Metric | Interpretation |
+| --- | --- |
+| `feature_rank` | rank by absolute or signed delta |
+| `feature_index` | Qwen-Scope feature id |
+| `alpha` | decoder-vector steering coefficient |
+| generation markers | causal response to sparse feature intervention |
+| `mean_repetition_proxy` | sparse steering degeneration check |
+
+### Artifacts
+
+- `metrics.jsonl`: generation rows;
+- `aggregate.json`: feature-by-alpha table;
+- `top_sae_features.json` when produced by upstream feature ranking;
+- `tables/generations.csv`;
+- `summary.json` and `report.md`.
+
+### Interpretation
+
+E010 is stronger than a single-feature result because it exposes whether the
+effect is concentrated, redundant, or unstable across nearby top-ranked
+features. A candidate feature is useful only if its intervention changes the
+target marker more than style, length, refusal, or repetition.
+
+## E011 Orthogonalized Steering
+
+### Research Question
+
+E011 asks whether a target behavior direction becomes cleaner after removing
+components aligned with nuisance or control behavior directions.
+
+For target direction `u` and control directions `c_i`, the intervention uses:
+
+```text
+u_clean = normalize(u - projection_span(C)(u))
+```
+
+### Inputs
+
+- target behavior and origin;
+- control behavior list;
+- common layer and activation view;
+- held-out evaluation bucket;
+- alpha schedule and generation settings.
+
+### Procedure
+
+1. Build the raw target CAA direction.
+2. Build CAA directions for every control behavior.
+3. Orthogonalize the target direction against the control span.
+4. Generate held-out prompts with raw and orthogonalized variants.
+5. Compare target markers and nuisance/style controls.
+
+### Metrics
+
+| Metric | Interpretation |
+| --- | --- |
+| `variant` | `raw` or `orthogonalized` |
+| `alpha` | steering coefficient |
+| generation markers | target and nuisance changes |
+| `n_controls_used` | number of control axes removed |
+
+### Artifacts
+
+- `metrics.jsonl`;
+- `aggregate.json`: raw versus orthogonalized response table;
+- `tables/generations.csv`;
+- `summary.json` and `report.md`.
+
+### Interpretation
+
+Orthogonalization is useful when it preserves the target movement while reducing
+refusal, unsafe, uncertainty, length, or repetition side effects. If raw and
+orthogonalized curves are identical, the selected controls did not explain the
+failure mode. If the target effect disappears, the target direction was mostly
+shared with the control axes.
+
+## E012 Origin Transfer
+
+### Research Question
+
+E012 asks whether directions learned from one data origin transfer to another:
+source-backed to synthetic, synthetic to source-backed, and within-origin.
+
+This is a representation-level transfer test, not a generation intervention.
+
+### Inputs
+
+- behavior list;
+- train origin list;
+- evaluation origin list;
+- layer and activation view;
+- train and evaluation limits.
+
+### Procedure
+
+1. For each behavior and train origin, build a dense direction.
+2. For each evaluation origin, score held-out contrast pairs along that
+   direction.
+3. Log one row per behavior, train origin, and evaluation origin.
+
+### Metrics
+
+| Metric | Interpretation |
+| --- | --- |
+| `behavior` | target behavior axis |
+| `train_origin` | origin used to build the direction |
+| `eval_origin` | origin used to score held-out pairs |
+| `direction_accuracy` | transfer separation quality |
+| `mean_projection_gap` | signed transfer margin |
+| `n_eval_pairs` | evaluation pair count |
+
+### Artifacts
+
+- `metrics.jsonl`: origin transfer matrix;
+- `summary.json`;
+- `report.md`.
+
+### Interpretation
+
+Source-backed to source-backed is the primary grounded evidence. Synthetic to
+synthetic can be high because of templating or construction artifacts. The most
+important stress test is cross-origin transfer. A behavior is more credible when
+the sign and margin remain stable across origins.
+
+## E013 Dynamic Steering
+
+### Research Question
+
+E013 asks whether steering should be applied only when an activation monitor
+predicts risk, instead of applying the intervention to every prompt.
+
+The monitor threshold is configured by a quantile over discovery scores:
+
+```yaml
+threshold_quantile: 0.75
+```
+
+### Inputs
+
+- target behavior and origin;
+- layer and activation view;
+- held-out evaluation bucket;
+- threshold quantile;
+- alpha schedule and generation settings.
+
+### Procedure
+
+1. Build a dense target direction.
+2. Estimate a monitor threshold from discovery-set projections.
+3. Score each held-out prompt before generation.
+4. Apply steering only when the monitor crosses the threshold.
+5. Compare dynamic steering against always-on steering.
+
+### Metrics
+
+| Metric | Interpretation |
+| --- | --- |
+| `variant` | `always` or `dynamic` |
+| `alpha` | steering coefficient |
+| `monitor_score` | pre-generation activation score when logged |
+| `applied_steering` | whether the gate fired |
+| generation markers | behavioral and side-effect response |
+
+### Artifacts
+
+- `metrics.jsonl`;
+- `aggregate.json`: always-on versus dynamic response;
+- `tables/generations.csv`;
+- `summary.json` with the selected threshold;
+- `report.md`.
+
+### Interpretation
+
+Dynamic steering is useful only if it applies to a meaningful subset of prompts
+and preserves or improves the target effect while reducing unnecessary side
+effects. A zero application rate means the threshold or monitor view is wrong
+for the evaluation bucket. A near-one application rate means the dynamic policy
+has collapsed to always-on steering.
+
+## E014 Multi-Layer Steering
+
+### Research Question
+
+E014 asks whether steering should be applied at one layer or distributed across
+a small window of neighboring layers.
+
+Each group defines a named intervention plan:
+
+```yaml
+groups:
+  - name: window_17_19
+    layers: [17, 18, 19]
+    divide_alpha: true
+```
+
+When `divide_alpha` is true, the configured alpha is split across hooks so the
+total intervention scale remains comparable.
+
+### Inputs
+
+- behavior and origin;
+- candidate layer list;
+- named layer groups;
+- activation view;
+- held-out bucket;
+- alpha schedule and generation settings.
+
+### Procedure
+
+1. Build one dense direction per configured layer.
+2. For each group, install steering hooks at all group layers.
+3. Generate held-out prompts for every group and alpha.
+4. Aggregate behavior and side-effect metrics by group.
+
+### Metrics
+
+| Metric | Interpretation |
+| --- | --- |
+| `variant` | group name such as `single_18` or `window_17_19` |
+| `n_hooks` | number of installed steering hooks |
+| `alpha` | total or per-hook steering scale according to `divide_alpha` |
+| generation markers | target and side-effect response |
+
+### Artifacts
+
+- `metrics.jsonl`;
+- `aggregate.json`: group-by-alpha table;
+- `tables/generations.csv`;
+- `summary.json` with group definitions;
+- `report.md`.
+
+### Interpretation
+
+Multi-layer steering is useful when it increases target movement without
+increasing repetition, refusal, or generic style shifts. If a layer window does
+not beat the best single layer, the simpler single-layer intervention should
+remain the primary protocol.
+
+## E015 Layer Transfer
+
+### Research Question
+
+E015 asks whether a direction discovered at one layer is still aligned with
+contrast separation at another layer. It is a representation-level localization
+test that helps decide whether a behavior is layer-specific or broadly present
+through the residual stream.
+
+### Inputs
+
+- behavior and origin;
+- activation view;
+- source layer list;
+- target layer list;
+- train and evaluation limits.
+
+### Procedure
+
+1. Build a direction at each source layer.
+2. Extract target-layer activations for held-out contrast pairs.
+3. Score each target layer along each source-layer direction.
+4. Log a source-layer by target-layer matrix.
+
+### Metrics
+
+| Metric | Interpretation |
+| --- | --- |
+| `source_layer` | layer used to build the direction |
+| `target_layer` | layer used for held-out scoring |
+| `direction_accuracy` | cross-layer separation quality |
+| `mean_projection_gap` | signed cross-layer margin |
+| `n_eval_pairs` | held-out contrast count |
+
+### Artifacts
+
+- `metrics.jsonl`: layer transfer matrix;
+- `summary.json`: best source-target layer pair;
+- `report.md`.
+
+### Interpretation
+
+A strong diagonal means the behavior is visible at individual layers. Strong
+off-diagonal transfer means the direction is stable across the residual stream.
+Large late-layer gaps may be useful for monitoring, while earlier transferable
+directions may be preferable for steering if they avoid output-style artifacts.
+
 ## Cross-Experiment Reading
 
 The experiments should be interpreted together:
@@ -410,6 +920,15 @@ The experiments should be interpreted together:
 | E003 strong, E005 weak | sparse feature is correlational or wrong intervention sign |
 | E006 strong, E004/E005 weak | training changes behavior more reliably than steering |
 | E004/E005 strong, E006 weak | training-free intervention may be more efficient for that behavior |
+| E007 strong, E009 controls weak | best-layer steering has credible causal evidence |
+| E008 diagonal strong, off-diagonal weak | behavior direction is specific |
+| E008 off-diagonal strong | direction may reflect a shared latent axis or confound |
+| E010 feature strong, E003 delta strong | sparse feature is both diagnostic and causal |
+| E011 improves side effects | nuisance axes explain part of the raw direction |
+| E012 cross-origin weak | origin-specific artifacts or non-transferable behavior signature |
+| E013 dynamic better than always-on | monitor-gated steering reduces unnecessary intervention |
+| E014 window weak | single-layer steering is sufficient |
+| E015 late-layer transfer strong | behavior signal is stable in later residual stream layers |
 | Source-backed weak, synthetic strong | likely templating or data-origin artifact |
 
 ## Campaign Report Checklist
@@ -428,4 +947,13 @@ Every campaign summary should state:
 - top E003 features;
 - E004/E005 dose-response interpretation;
 - E006 adapter path and held-out comparison;
+- E007 best-layer causal confirmation;
+- E008 specificity matrix and strongest off-diagonal confounds;
+- E009 control comparison;
+- E010 sparse feature intervention winners and failures;
+- E011 raw versus orthogonalized comparison;
+- E012 source-backed/synthetic transfer matrix;
+- E013 dynamic gate firing rate and effect;
+- E014 single-layer versus multi-layer comparison;
+- E015 source-target layer transfer matrix;
 - known caveats and failed controls.

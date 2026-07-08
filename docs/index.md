@@ -121,3 +121,12 @@ uv run steering verify-runs --runs-root runs
 | E004 | CAA steering | training-free | Residual steering dose response |
 | E005 | SAE feature steering | training-free | Decoder-vector steering |
 | E006 | LoRA SFT | training | Good-side contrast supervised training |
+| E007 | Best-layer CAA sweep | training-free | Best representation layers tested causally |
+| E008 | Specificity matrix | training-free | Cross-behavior direction specificity |
+| E009 | Causal controls | training-free | Random, sign, shuffled, and unrelated controls |
+| E010 | SAE feature sweep | training-free | Multi-feature decoder-vector interventions |
+| E011 | Orthogonalized steering | training-free | Target steering after nuisance-axis removal |
+| E012 | Origin transfer | training-free | Source-backed and synthetic transfer matrix |
+| E013 | Dynamic steering | training-free | Activation-gated steering versus always-on |
+| E014 | Multi-layer steering | training-free | Single-layer versus layer-window hooks |
+| E015 | Layer transfer | training-free | Source-layer to target-layer alignment |
