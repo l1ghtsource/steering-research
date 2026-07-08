@@ -1,0 +1,5 @@
+{
+  "experiment": "phase2_qwen35_2b_e012_origin_transfer",
+  "backend": "qwen35_2b_base",
+  "rows": 21
+}

@@ -9,6 +9,15 @@ from steering_research.cli.experiments import (
     run_e003,
     run_e004,
     run_e005,
+    run_e007,
+    run_e008,
+    run_e009,
+    run_e010,
+    run_e011,
+    run_e012,
+    run_e013,
+    run_e014,
+    run_e015,
     run_qwen_limited_smoke,
     run_real_smoke_suite,
     write_smoke_summary,
@@ -109,6 +118,21 @@ def main() -> int:
     e006 = sub.add_parser("e006-lora-sft")
     e006.add_argument("--config", type=Path, default=Path("configs/experiments/e006_lora_sft.yaml"))
 
+    for name, default in [
+        ("e007", "configs/experiments/e007_best_layer_caa.yaml"),
+        ("e008", "configs/experiments/e008_specificity_matrix.yaml"),
+        ("e009", "configs/experiments/e009_causal_controls.yaml"),
+        ("e010", "configs/experiments/e010_sae_feature_sweep.yaml"),
+        ("e011", "configs/experiments/e011_orthogonalized_steering.yaml"),
+        ("e012", "configs/experiments/e012_origin_transfer.yaml"),
+        ("e013", "configs/experiments/e013_dynamic_steering.yaml"),
+        ("e014", "configs/experiments/e014_multi_layer_steering.yaml"),
+        ("e015", "configs/experiments/e015_layer_transfer.yaml"),
+    ]:
+        exp = sub.add_parser(name)
+        exp.add_argument("--config", type=Path, default=Path(default))
+        exp.add_argument("--backend", choices=["fake", "qwen"], default=None)
+
     verify = sub.add_parser("verify-runs")
     verify.add_argument("--runs-root", type=Path, default=Path("runs"))
 
@@ -145,6 +169,33 @@ def main() -> int:
         return 0
     if args.command == "e006-lora-sft":
         print(run_lora_sft(repo_root, repo_root / args.config))
+        return 0
+    if args.command == "e007":
+        print(run_e007(repo_root, repo_root / args.config, args.backend))
+        return 0
+    if args.command == "e008":
+        print(run_e008(repo_root, repo_root / args.config, args.backend))
+        return 0
+    if args.command == "e009":
+        print(run_e009(repo_root, repo_root / args.config, args.backend))
+        return 0
+    if args.command == "e010":
+        print(run_e010(repo_root, repo_root / args.config, args.backend))
+        return 0
+    if args.command == "e011":
+        print(run_e011(repo_root, repo_root / args.config, args.backend))
+        return 0
+    if args.command == "e012":
+        print(run_e012(repo_root, repo_root / args.config, args.backend))
+        return 0
+    if args.command == "e013":
+        print(run_e013(repo_root, repo_root / args.config, args.backend))
+        return 0
+    if args.command == "e014":
+        print(run_e014(repo_root, repo_root / args.config, args.backend))
+        return 0
+    if args.command == "e015":
+        print(run_e015(repo_root, repo_root / args.config, args.backend))
         return 0
     if args.command == "verify-runs":
         result = verify_runs(repo_root / args.runs_root)

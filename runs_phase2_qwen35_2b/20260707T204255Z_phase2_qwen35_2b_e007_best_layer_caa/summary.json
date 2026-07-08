@@ -1,0 +1,15 @@
+{
+  "experiment": "phase2_qwen35_2b_e007_best_layer_caa",
+  "backend": "qwen35_2b_base",
+  "rows": 3080,
+  "entries": 3,
+  "alphas": [
+    -4.0,
+    -2.0,
+    -1.0,
+    0.0,
+    1.0,
+    2.0,
+    4.0
+  ]
+}

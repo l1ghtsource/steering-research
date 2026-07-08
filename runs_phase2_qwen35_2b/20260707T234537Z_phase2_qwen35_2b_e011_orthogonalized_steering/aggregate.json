@@ -1,0 +1,114 @@
+{
+  "rows": [
+    {
+      "variant": "orthogonalized",
+      "alpha": -1.0,
+      "n": 280,
+      "mean_refusal_marker": 0.0,
+      "mean_agreement_marker": 0.14642857142857144,
+      "mean_uncertainty_marker": 0.0,
+      "mean_unsafe_planning_marker": 0.0,
+      "mean_length_tokens": 74.65357142857142,
+      "mean_repetition_proxy": 0.16392517514775398
+    },
+    {
+      "variant": "orthogonalized",
+      "alpha": -2.0,
+      "n": 280,
+      "mean_refusal_marker": 0.0,
+      "mean_agreement_marker": 0.14642857142857144,
+      "mean_uncertainty_marker": 0.0,
+      "mean_unsafe_planning_marker": 0.0,
+      "mean_length_tokens": 74.51071428571429,
+      "mean_repetition_proxy": 0.1555832363945767
+    },
+    {
+      "variant": "orthogonalized",
+      "alpha": 0.0,
+      "n": 280,
+      "mean_refusal_marker": 0.0,
+      "mean_agreement_marker": 0.15357142857142858,
+      "mean_uncertainty_marker": 0.0,
+      "mean_unsafe_planning_marker": 0.0,
+      "mean_length_tokens": 75.10357142857143,
+      "mean_repetition_proxy": 0.17355835948593473
+    },
+    {
+      "variant": "orthogonalized",
+      "alpha": 1.0,
+      "n": 280,
+      "mean_refusal_marker": 0.0,
+      "mean_agreement_marker": 0.15,
+      "mean_uncertainty_marker": 0.0,
+      "mean_unsafe_planning_marker": 0.0,
+      "mean_length_tokens": 75.65,
+      "mean_repetition_proxy": 0.18840828613815347
+    },
+    {
+      "variant": "orthogonalized",
+      "alpha": 2.0,
+      "n": 280,
+      "mean_refusal_marker": 0.0,
+      "mean_agreement_marker": 0.16071428571428573,
+      "mean_uncertainty_marker": 0.0,
+      "mean_unsafe_planning_marker": 0.0,
+      "mean_length_tokens": 76.38928571428572,
+      "mean_repetition_proxy": 0.20717168491150068
+    },
+    {
+      "variant": "raw",
+      "alpha": -1.0,
+      "n": 280,
+      "mean_refusal_marker": 0.0,
+      "mean_agreement_marker": 0.14642857142857144,
+      "mean_uncertainty_marker": 0.0,
+      "mean_unsafe_planning_marker": 0.0,
+      "mean_length_tokens": 74.61428571428571,
+      "mean_repetition_proxy": 0.16123216963495426
+    },
+    {
+      "variant": "raw",
+      "alpha": -2.0,
+      "n": 280,
+      "mean_refusal_marker": 0.0,
+      "mean_agreement_marker": 0.14642857142857144,
+      "mean_uncertainty_marker": 0.0,
+      "mean_unsafe_planning_marker": 0.0,
+      "mean_length_tokens": 74.52857142857142,
+      "mean_repetition_proxy": 0.15565453931312373
+    },
+    {
+      "variant": "raw",
+      "alpha": 0.0,
+      "n": 280,
+      "mean_refusal_marker": 0.0,
+      "mean_agreement_marker": 0.15357142857142858,
+      "mean_uncertainty_marker": 0.0,
+      "mean_unsafe_planning_marker": 0.0,
+      "mean_length_tokens": 75.10357142857143,
+      "mean_repetition_proxy": 0.17355835948593473
+    },
+    {
+      "variant": "raw",
+      "alpha": 1.0,
+      "n": 280,
+      "mean_refusal_marker": 0.0,
+      "mean_agreement_marker": 0.15,
+      "mean_uncertainty_marker": 0.0,
+      "mean_unsafe_planning_marker": 0.0,
+      "mean_length_tokens": 75.61785714285715,
+      "mean_repetition_proxy": 0.19095849118687336
+    },
+    {
+      "variant": "raw",
+      "alpha": 2.0,
+      "n": 280,
+      "mean_refusal_marker": 0.0,
+      "mean_agreement_marker": 0.15714285714285714,
+      "mean_uncertainty_marker": 0.0,
+      "mean_unsafe_planning_marker": 0.0,
+      "mean_length_tokens": 76.325,
+      "mean_repetition_proxy": 0.20313697009664564
+    }
+  ]
+}

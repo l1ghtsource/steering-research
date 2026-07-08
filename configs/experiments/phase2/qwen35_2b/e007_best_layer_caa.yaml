@@ -1,0 +1,31 @@
+name: phase2_qwen35_2b_e007_best_layer_caa
+dataset: configs/data/latent_behavior_bench.yaml
+model: configs/models/qwen35_2b.yaml
+backend: qwen
+seed: 17
+eval_bucket: external_clean
+train_limit: 1000000
+eval_limit: 1000000
+alphas: [-4.0, -2.0, -1.0, 0.0, 1.0, 2.0, 4.0]
+max_new_tokens: 32
+generation_batch_size: 4
+entries:
+  - name: sycophancy_best
+    behavior: sycophancy
+    origin: source_backed_contrasts
+    eval_bucket: external_clean
+    layer: 18
+    activation_view: assistant_answer_mean
+  - name: premature_refusal_best
+    behavior: premature_refusal
+    origin: source_backed_contrasts
+    eval_bucket: external_clean
+    layer: 12
+    activation_view: assistant_answer_mean
+  - name: unsafe_planning_best
+    behavior: unsafe_planning
+    origin: source_backed_contrasts
+    eval_bucket: external_clean
+    layer: 23
+    activation_view: assistant_answer_mean
+output_dir: runs_phase2_qwen35_2b

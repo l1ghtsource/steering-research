@@ -131,22 +131,34 @@ class QwenActivationBackend:
         self._activation_cache.clear()
         return vector
 
-    def _install_steering_hook(self, steering: tuple[int, FloatArray, float] | None) -> Any | None:
-        if steering is None:
-            return None
+    def _install_steering_hooks(self, steerings: list[tuple[int, FloatArray, float]]) -> list[Any]:
+        hooks = []
+        if not steerings:
+            return hooks
         torch = self._torch
-        layer, direction, alpha = steering
-        direction_tensor = torch.tensor(direction, device=self.device, dtype=self.model.dtype)
-        direction_tensor = direction_tensor / direction_tensor.norm().clamp_min(1e-8)
+        for layer, direction, alpha in steerings:
+            direction_tensor = torch.tensor(direction, device=self.device, dtype=self.model.dtype)
+            direction_tensor = direction_tensor / direction_tensor.norm().clamp_min(1e-8)
 
-        def _hook(_module: Any, _inputs: Any, output: Any) -> Any:
-            hidden = output[0] if isinstance(output, tuple) else output
-            hidden = hidden + alpha * direction_tensor.view(1, 1, -1)
-            if isinstance(output, tuple):
-                return (hidden, *output[1:])
-            return hidden
+            def _hook(
+                _module: Any,
+                _inputs: Any,
+                output: Any,
+                direction_tensor: Any = direction_tensor,
+                alpha: float = alpha,
+            ) -> Any:
+                hidden = output[0] if isinstance(output, tuple) else output
+                hidden = hidden + alpha * direction_tensor.view(1, 1, -1)
+                if isinstance(output, tuple):
+                    return (hidden, *output[1:])
+                return hidden
 
-        return self.model.model.layers[layer].register_forward_hook(_hook)
+            hooks.append(self.model.model.layers[layer].register_forward_hook(_hook))
+        return hooks
+
+    def _install_steering_hook(self, steering: tuple[int, FloatArray, float] | None) -> Any | None:
+        hooks = self._install_steering_hooks([] if steering is None else [steering])
+        return hooks[0] if hooks else None
 
     def generate(
         self,
@@ -219,6 +231,50 @@ class QwenActivationBackend:
                     "model_id": self.model_id,
                     "steering": steering is not None,
                     "batch_size": len(examples),
+                },
+            )
+            for row, prompt in zip(output_ids, prompts, strict=True)
+        ]
+
+    def generate_batch_multi_steering(
+        self,
+        examples: list[Example],
+        steerings: list[tuple[int, FloatArray, float]],
+        max_new_tokens: int = 96,
+    ) -> list[GenerationResult]:
+        if not examples:
+            return []
+        torch = self._torch
+        prompts = [example.prompt_text for example in examples]
+        inputs = self.tokenizer(
+            prompts,
+            return_tensors="pt",
+            add_special_tokens=True,
+            padding=True,
+        )
+        inputs = {key: value.to(self.device) for key, value in inputs.items()}
+        hooks = self._install_steering_hooks(steerings)
+        try:
+            with torch.no_grad():
+                output_ids = self.model.generate(
+                    **inputs,
+                    max_new_tokens=max_new_tokens,
+                    do_sample=False,
+                    pad_token_id=self.tokenizer.pad_token_id,
+                )
+        finally:
+            for hook in hooks:
+                hook.remove()
+        return [
+            GenerationResult(
+                text=self.tokenizer.decode(row, skip_special_tokens=True),
+                prompt=prompt,
+                metadata={
+                    "backend": self.name,
+                    "model_id": self.model_id,
+                    "steering": bool(steerings),
+                    "batch_size": len(examples),
+                    "n_steering_hooks": len(steerings),
                 },
             )
             for row, prompt in zip(output_ids, prompts, strict=True)

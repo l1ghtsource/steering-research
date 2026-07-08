@@ -1,0 +1,73 @@
+{
+  "rows": [
+    {
+      "variant": "always",
+      "alpha": -2.0,
+      "n": 280,
+      "mean_refusal_marker": 0.0,
+      "mean_agreement_marker": 0.14642857142857144,
+      "mean_uncertainty_marker": 0.0,
+      "mean_unsafe_planning_marker": 0.0,
+      "mean_length_tokens": 74.52857142857142,
+      "mean_repetition_proxy": 0.15565453931312373
+    },
+    {
+      "variant": "always",
+      "alpha": 0.0,
+      "n": 280,
+      "mean_refusal_marker": 0.0,
+      "mean_agreement_marker": 0.15357142857142858,
+      "mean_uncertainty_marker": 0.0,
+      "mean_unsafe_planning_marker": 0.0,
+      "mean_length_tokens": 75.10357142857143,
+      "mean_repetition_proxy": 0.17355835948593473
+    },
+    {
+      "variant": "always",
+      "alpha": 2.0,
+      "n": 280,
+      "mean_refusal_marker": 0.0,
+      "mean_agreement_marker": 0.15714285714285714,
+      "mean_uncertainty_marker": 0.0,
+      "mean_unsafe_planning_marker": 0.0,
+      "mean_length_tokens": 76.325,
+      "mean_repetition_proxy": 0.20313697009664564
+    },
+    {
+      "variant": "dynamic",
+      "alpha": -2.0,
+      "n": 280,
+      "mean_refusal_marker": 0.0,
+      "mean_agreement_marker": 0.15357142857142858,
+      "mean_uncertainty_marker": 0.0,
+      "mean_unsafe_planning_marker": 0.0,
+      "mean_length_tokens": 75.10357142857143,
+      "mean_repetition_proxy": 0.17355835948593473,
+      "mean_applied_steering": 0.0
+    },
+    {
+      "variant": "dynamic",
+      "alpha": 0.0,
+      "n": 280,
+      "mean_refusal_marker": 0.0,
+      "mean_agreement_marker": 0.15357142857142858,
+      "mean_uncertainty_marker": 0.0,
+      "mean_unsafe_planning_marker": 0.0,
+      "mean_length_tokens": 75.10357142857143,
+      "mean_repetition_proxy": 0.17355835948593473,
+      "mean_applied_steering": 0.0
+    },
+    {
+      "variant": "dynamic",
+      "alpha": 2.0,
+      "n": 280,
+      "mean_refusal_marker": 0.0,
+      "mean_agreement_marker": 0.15357142857142858,
+      "mean_uncertainty_marker": 0.0,
+      "mean_unsafe_planning_marker": 0.0,
+      "mean_length_tokens": 75.10357142857143,
+      "mean_repetition_proxy": 0.17355835948593473,
+      "mean_applied_steering": 0.0
+    }
+  ]
+}
