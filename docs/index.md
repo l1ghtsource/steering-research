@@ -50,7 +50,8 @@ flowchart LR
 ```
 
 The research program is described in detail in `Research Program`. The
-experiment protocols are described in `Experiments`.
+experiment protocols are described in `Experiments`. Current conclusions,
+invalid claims, and benchmark caveats are tracked in `Findings and Caveats`.
 
 ## Behavior axes
 

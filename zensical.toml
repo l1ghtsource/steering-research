@@ -11,6 +11,7 @@ nav = [
   { "Dataset" = "datasets.md" },
   { "Models and SAE" = "models.md" },
   { "Experiments" = "experiments.md" },
+  { "Findings and Caveats" = "findings.md" },
   { "Run Artifacts" = "reports.md" },
   { "H200 Guide" = "h200.md" },
   { "CI and Pages" = "ci.md" },
