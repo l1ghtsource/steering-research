@@ -1,7 +1,7 @@
 name: qwen35_27b
 model_id: Qwen/Qwen3.5-27B
 sae_repo_id: Qwen/SAE-Res-Qwen3.5-27B-W80K-L0_50
-num_layers: 48
+num_layers: 64
 hidden_size: 5120
 sae_width: 81920
 sae_top_k: 50
@@ -9,4 +9,3 @@ hook_point: residual
 device: auto
 dtype: auto
 max_new_tokens: 96
-

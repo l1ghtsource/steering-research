@@ -1,0 +1,12 @@
+name: qwen35_27b_h200_offline
+model_id: /data/models/qwen/Qwen3.5-27B
+sae_repo_id: /data/models/qwen-scope/SAE-Res-Qwen3.5-27B-W80K-L0_50
+num_layers: 64
+hidden_size: 5120
+sae_width: 81920
+sae_top_k: 50
+hook_point: residual
+device: cuda
+dtype: bfloat16
+local_files_only: true
+max_new_tokens: 96

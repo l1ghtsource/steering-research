@@ -1,8 +1,8 @@
 # Pre-defense presentation
 
 The presentation is a self-contained Beamer deck covering the research problem,
-validated Qwen3.5-2B causal results, reproducibility stack, and H200 scale-up
-plan.
+the current Qwen3.5-2B score-level intervention evidence, its validity limits,
+and the controlled experiments required before scale-up.
 
 ## Build
 
@@ -18,11 +18,10 @@ The expected artifact is:
 output/pdf/predefense.pdf
 ```
 
-Before presenting, update `\PresenterName` and `\Affiliation` near the top of
-`predefense.tex`.
-
 ## Content policy
 
-All quantitative claims are sourced from committed Qwen3.5-2B forced-choice and
-calibration artifacts. The main deck reports only source-backed series that
-satisfy the same-prompt, nonempty-completion evaluation contract.
+Quantitative claims are sourced from the Qwen3.5-2B E016/E017 artifacts. The
+deck labels them as exploratory fixed-pair score effects: the current ordered
+30% extraction partition is not an untouched final test, and the answer pairs
+retain source-model, style, format, or template confounds. Open-generation
+behavior and cross-model generalization remain untested.
