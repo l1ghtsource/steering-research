@@ -9,4 +9,4 @@ layer: 0
 activation_view: assistant_answer_mean
 train_limit: 100
 eval_limit: 100
-output_dir: runs_smoke100
+output_dir: runs/smoke100

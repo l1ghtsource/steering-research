@@ -6,9 +6,9 @@ icon: lucide/clipboard-check
 
 This page records the current Qwen3.5-2B evidence from the completed campaigns:
 
-- `runs_full_qwen35_2b_final`
-- `runs_phase2_qwen35_2b`
-- `runs_phase3_qwen35_2b_final`
+- `runs/full_qwen35_2b_final`
+- `runs/phase2_qwen35_2b`
+- `runs/phase3_qwen35_2b_final`
 
 It is intentionally conservative. A result is treated as strong only when it
 survives the appropriate control for that claim. Places where the benchmark,

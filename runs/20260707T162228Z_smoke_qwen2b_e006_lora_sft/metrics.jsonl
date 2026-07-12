@@ -1,0 +1,2 @@
+{"stage": "dataset_built", "rows": 10, "behavior": "sycophancy", "origin": "source_backed_contrasts"}
+{"stage": "train_finished", "train_runtime": 4.3645, "train_samples_per_second": 0.229, "train_steps_per_second": 0.229, "total_flos": 1516492342272.0, "train_loss": 2.0605039596557617, "epoch": 0.1}

@@ -16,4 +16,4 @@ eval_limit: 1000000
 alphas: [-2.0, -1.0, 0.0, 1.0, 2.0]
 max_new_tokens: 32
 generation_batch_size: 4
-output_dir: runs_phase2_qwen35_2b
+output_dir: runs/phase2_qwen35_2b

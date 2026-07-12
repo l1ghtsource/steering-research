@@ -9,4 +9,4 @@ layer: 12
 activation_view: assistant_answer_mean
 train_limit: 1000000
 eval_limit: 1000000
-output_dir: runs_full_qwen35_2b_final
+output_dir: runs/full_qwen35_2b_final

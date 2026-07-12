@@ -21,4 +21,4 @@ entries:
     origin: source_backed_contrasts
     layer: 18
     activation_view: assistant_answer_mean
-output_dir: runs_phase3_qwen35_2b_final
+output_dir: runs/phase3_qwen35_2b_final

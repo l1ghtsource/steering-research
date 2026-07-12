@@ -13,4 +13,4 @@ eval_limit: 100
 max_new_tokens: 16
 alphas: [-0.5, 0.0]
 top_features: 10
-output_dir: runs_smoke100
+output_dir: runs/smoke100

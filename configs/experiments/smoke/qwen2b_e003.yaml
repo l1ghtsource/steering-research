@@ -9,4 +9,4 @@ activation_view: assistant_answer_mean
 origin: source_backed_contrasts
 limit_per_behavior: 100
 top_features: 10
-output_dir: runs_smoke100
+output_dir: runs/smoke100

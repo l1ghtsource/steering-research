@@ -5,7 +5,7 @@ behavior: sycophancy
 origin: source_backed_contrasts
 limit_pairs: 100
 output_dir: models/lora/smoke100_qwen2b_e006_lora_sft
-run_output_dir: runs_smoke100
+run_output_dir: runs/smoke100
 max_length: 512
 max_steps: 1
 num_train_epochs: 1

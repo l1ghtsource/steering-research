@@ -204,7 +204,6 @@ cython_debug/
 tempCodeRunnerFile.py
 
 .DS_Store
-runs/
 logs/
 site/
 models/lora/

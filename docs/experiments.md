@@ -53,7 +53,7 @@ configs/experiments/h200/qwen35_9b/
 Use a dedicated output root:
 
 ```yaml
-output_dir: runs_h200_qwen35_9b
+output_dir: runs/h200_qwen35_9b
 ```
 
 Each experiment should specify the same dataset config and model config so

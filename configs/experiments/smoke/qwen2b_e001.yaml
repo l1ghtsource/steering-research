@@ -10,4 +10,4 @@ component: residual
 activation_views: [assistant_answer_mean]
 train_fraction: 0.5
 limit_per_behavior: 100
-output_dir: runs_smoke100
+output_dir: runs/smoke100
