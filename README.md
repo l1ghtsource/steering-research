@@ -1,3 +1,5 @@
+[Documentation](https://l1ghtsource.github.io/steering-research/)
+
 # steering-research
 
 Activation steering research harness for LatentBehaviorBench, Qwen3.5, and

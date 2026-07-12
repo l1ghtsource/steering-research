@@ -137,6 +137,49 @@ Endpoint & teacher-forced paired margin \\
 \hfill{\color{Gray}\small July 2026}
 \end{frame}
 
+\begin{frame}{Team contributions and what we have learned}
+\small
+\begin{columns}[T,onlytextwidth]
+\column{0.47\textwidth}
+\textcolor{Navy}{\bfseries Team contributions}
+\vspace{0.18cm}
+
+\textbf{Vladislav Kuznetsov}\\[-0.04cm]
+\textcolor{Gray}{Benchmark development and research ideas}\par
+\vspace{0.16cm}
+
+\textbf{Alexey Kalinin}\\[-0.04cm]
+\textcolor{Gray}{Research ideation and literature review}\par
+\vspace{0.16cm}
+
+\textbf{Kirill Ryzhichkin}\\[-0.04cm]
+\textcolor{Gray}{Experiments and repository engineering}\par
+\vspace{0.16cm}
+
+\textbf{Anastasia Shcherbukhina}\\[-0.04cm]
+\textcolor{Gray}{Research ideation and result analysis}\par
+
+\column{0.49\textwidth}
+\textcolor{Navy}{\bfseries What we have learned}
+\vspace{0.18cm}
+
+\begin{tightitemize}
+  \item \textbf{Intervention validity.} A frozen residual direction causally
+  changes a teacher-forced preference margin on fixed answer pairs.
+  \item \textbf{Effects are measurable but confounded.} Refusal has the largest
+  raw-coefficient shift; hallucination has a smooth dose response. Source,
+  style, length, and answer format still co-vary with the labels.
+  \item \textbf{The next gate is behavioral validity.} Grouped final splits,
+  construct-matched pairs, norm-matched controls, and open generation must
+  precede scale or sparse-feature claims.
+\end{tightitemize}
+\end{columns}
+
+\vspace{0.12cm}
+\claimbox{Navy}{\textbf{Current status.} Causal fixed-pair score steering is
+supported in Qwen3.5-2B-Base; clean, transferable behavioral control is not yet established.}
+\end{frame}
+
 \begin{frame}{A frozen direction causally changes a paired score}
 \artifact
 
