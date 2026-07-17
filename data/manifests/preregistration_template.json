@@ -1,0 +1,25 @@
+{
+  "analysis_version": "fill-before-validation",
+  "benchmark_dataset_hash": "8a6e446b33b1494790a0d046943f59a6ea0625c63963ace57651d81de0520e48",
+  "checkpoint_hashes": {},
+  "code_commit": "",
+  "exclusion_rules": [
+    "condition integrity analyses on neutral-capable families",
+    "exclude only malformed runtime episodes under frozen parser rules"
+  ],
+  "family_cluster_bootstrap_seed": 0,
+  "feature_selection_split": "dev",
+  "frozen_at_utc": "",
+  "intervention_strengths": [],
+  "layer_selection_rule": "",
+  "method_name": "",
+  "primary_estimands": [
+    "conflict suggestion error",
+    "pressure interaction",
+    "unauthorized proxy rate",
+    "authorized counterfactual success"
+  ],
+  "prompt_template_hash": "",
+  "stopping_rule": "",
+  "validation_opened_at_utc": ""
+}

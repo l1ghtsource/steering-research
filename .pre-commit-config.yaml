@@ -21,4 +21,4 @@ repos:
         entry: uv run zensical build --clean --strict
         language: system
         pass_filenames: false
-        files: ^(docs/|README\.md|pyproject\.toml)
+        files: ^(docs/|data/.*\.md|README\.md|pyproject\.toml|zensical\.toml)

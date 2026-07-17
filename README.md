@@ -1,66 +1,130 @@
-[Documentation](https://l1ghtsource.github.io/steering-research/)
+# PolicyIntegrityBench
 
-# steering-research
+[Full documentation](https://l1ghtsource.github.io/steering-research/) | [Benchmark card](data/benchmark_card.md) | [Validation report](data/reports/candidate_validation.md) | [Research protocol](ideas/benchmark_spec.md)
 
-Activation steering research harness for LatentBehaviorBench, Qwen3.5, and
-Qwen-Scope sparse autoencoders.
+PolicyIntegrityBench is a solver-backed benchmark for measuring whether a language model
+preserves an evidence-grounded or explicitly authorized policy when contextual pressure
+favors another answer or action.
 
-## Abstract
+The benchmark separates three questions that are often conflated:
 
-This repository studies whether undesirable behaviors in Qwen3.5 models can be
-identified as latent residual-stream directions or Qwen-Scope sparse features,
-then controlled through inference-time steering. It uses LatentBehaviorBench as
-a contrastive dataset for hallucination, sycophancy, premature refusal,
-deception, unsafe planning, and overconfidence.
+- **Capability:** can the model solve the neutral task?
+- **Integrity:** does a neutral-capable model change its answer or action under conflicting
+  suggestion, social pressure, or proxy incentives?
+- **Authorization sensitivity:** does an intervention suppress only unauthorized behavior,
+  while preserving the same action when it is explicitly authorized?
 
-The research loop is:
+Primary outcomes are computed by deterministic solvers and executable state predicates.
+No LLM judge determines benchmark labels.
 
-1. build dense behavior directions from positive-negative contrast pairs;
-2. measure whether those directions detect behavior on held-out examples;
-3. rank Qwen-Scope sparse features by behavior activation deltas;
-4. run dense residual steering and sparse decoder-vector steering;
-5. compare training-free steering with a LoRA SFT baseline;
-6. log every run as JSONL metrics, JSON summaries, Markdown reports, and static
-   HTML dashboards.
+## Dataset
 
-## Setup
+| Track | Unit | Families | Variants | Items | Verification |
+|---|---|---:|---:|---:|---|
+| Track E | Evidence-grounded decision | 72 | 8 | 576 | Constraint and interval solvers |
+| Track A | Agentic workspace task | 24 | 4 | 96 | Executable final-state predicates |
+
+Track E contains neutral, insufficient-evidence, aligned, and conflicting stakeholder
+conditions. Track A contains clean, temptation, proxy-pressure, and explicitly authorized
+counterfactual environments. Every variant from one family remains in the same split.
+
+The checked-in dataset is under [`data/`](data/):
+
+```text
+data/
+├── dev/                 # method development and feature selection
+├── validation/          # generator-group-held-out evaluation
+├── schema/              # JSON Schemas for families and items
+├── manifests/           # dataset hashes and preregistration template
+├── reports/             # executable validation and calibration reports
+├── reviewer_packets/    # blinded external semantic-review forms
+└── authoring/            # deterministic source catalog
+```
+
+## Quick start
+
+Install the benchmark and developer tooling with [uv](https://docs.astral.sh/uv/):
 
 ```bash
-uv sync --extra dev --extra model --extra training --extra docs
-uv run steering validate-data
+uv sync --extra dev
+uv run pib --help
+uv run pib validate
+```
+
+Rebuild every generated family, item, manifest, and hash:
+
+```bash
+uv run pib build
+uv run pib validate --write-artifacts
+```
+
+Run repository checks:
+
+```bash
+uv run ruff format --check
 uv run ruff check
 uv run ty check
 uv run pytest
-uv run zensical build --clean --strict
 ```
 
-The benchmark is mounted at `external/LatentBehaviorBench` as a git submodule.
+## Leak-resistant evaluation
 
-## Experiments
+The public JSONL files are intended for development and transparent audit. For an actual
+held-out run, create a secret-seed rendering with physically separate inference and scoring
+directories:
 
 ```bash
-uv run steering e001 --config configs/experiments/e001_mean_direction.yaml --backend qwen
-uv run steering e002 --config configs/experiments/e002_activation_monitor.yaml --backend qwen
-uv run steering e003 --config configs/experiments/e003_sae_delta.yaml --backend qwen
-uv run steering e004 --config configs/experiments/e004_steering_eval.yaml --backend qwen
-uv run steering e005 --config configs/experiments/e005_sae_feature_steering.yaml --backend qwen
-uv run steering e006-lora-sft --config configs/experiments/e006_lora_sft.yaml
+uv run pib materialize \
+  --split validation \
+  --seed "$SECRET_RENDER_SEED" \
+  --input-output /inference-only/pib-validation \
+  --key-output /scoring-only/pib-validation-key
 ```
 
-Each run writes `manifest.json`, `metrics.jsonl`, `summary.json`, `report.md`,
-`run.log`, and dashboard inputs under the configured output directory.
+Inference rows contain only `eval_id`, `prompt`, and `prompt_hash`. The key contains family,
+condition, solver, and target metadata. Workers must be frozen before corpus access and
+stateless across `eval_id`s. Cross-row fitting, retrieval, clustering, normalization, or
+caching is transductive adaptation and invalidates a held-out claim.
 
-## Artifacts
+## Optional model calibration
+
+Install model dependencies and run the forced-choice diagnostic on a local Hugging Face
+checkpoint:
 
 ```bash
-uv run steering verify-runs --runs-root runs
-uv run steering dashboard --runs-root runs
+uv sync --extra model
+uv run pib calibrate /models/Qwen3.5-2B-Base \
+  --report runs/qwen35_2b_base.json \
+  --calibration-label qwen35_2b_base_diagnostic \
+  --device auto \
+  --dtype auto
 ```
 
-## Docs
+This diagnostic checks task difficulty and pressure sensitivity. It does not replace the
+registered free-generation and executable-agent calibration protocol.
 
-Docs are built with Zensical and deployed to GitHub Pages by CI:
+## Scientific status
+
+The current public release passes schema validation, deterministic solver replay, split
+isolation, static shortcut baselines, and adversarial Track A runtime checks. It is suitable
+for software integration and exploratory research.
+
+It is not a sealed confirmatory test set. Independent semantic review, post-trained model
+calibration, and independently authored final families remain required. See
+[`data/research_readiness.md`](data/research_readiness.md) for the exact release decision and
+open gates.
+
+## Development
 
 ```bash
-uv run zensical build --clean --strict
+uv sync --extra dev --extra docs
+uv run pre-commit install
+uv run zensical serve
 ```
+
+CI runs Ruff, ty, and a strict Zensical build. Tests remain a local release check because
+the benchmark includes generated data and executable validation beyond ordinary unit tests.
+
+## License
+
+MIT.

@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://policy-integrity.invalid/schema/track_a_family.schema.json",
+  "title": "PolicyIntegrityBench Track A canonical family",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "track",
+    "family_id",
+    "split",
+    "domain",
+    "generator_group",
+    "renderer_group",
+    "case_header",
+    "initial_files",
+    "legitimate_action",
+    "proxy_action",
+    "family_hash"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "track": {"const": "A"},
+    "family_id": {"type": "string", "pattern": "^A-[0-9]{4}$"},
+    "split": {"enum": ["dev", "validation"]},
+    "domain": {"type": "string", "minLength": 1},
+    "generator_group": {"type": "string", "minLength": 1},
+    "renderer_group": {"const": "json_workspace"},
+    "case_header": {"type": "string", "minLength": 1},
+    "initial_files": {"type": "object", "minProperties": 3},
+    "legitimate_action": {"$ref": "#/$defs/state_change"},
+    "proxy_action": {"$ref": "#/$defs/state_change"},
+    "family_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "$defs": {
+    "state_change": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "key", "initial", "target"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "key": {"type": "string", "minLength": 1},
+        "initial": {},
+        "target": {}
+      }
+    }
+  }
+}

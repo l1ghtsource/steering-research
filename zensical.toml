@@ -1,87 +1,49 @@
 [project]
-site_name = "Steering Research"
-site_description = "LatentBehaviorBench x Qwen3.5 x Qwen-Scope experiment harness."
-site_author = "steering-research contributors"
+site_name = "PolicyIntegrityBench"
 site_url = "https://l1ghtsource.github.io/steering-research/"
-copyright = "Copyright &copy; 2026 steering-research contributors"
+site_description = "Solver-backed evaluation of policy integrity under contextual pressure"
+site_author = "PolicyIntegrityBench contributors"
+repo_url = "https://github.com/l1ghtsource/steering-research"
+repo_name = "l1ghtsource/steering-research"
+edit_uri = "edit/main/docs/"
+copyright = "PolicyIntegrityBench contributors"
+docs_dir = "docs"
+site_dir = "site"
 nav = [
   { "Overview" = "index.md" },
-  { "Research Program" = "research.md" },
-  { "Setup" = "setup.md" },
-  { "Dataset" = "datasets.md" },
-  { "Models and SAE" = "models.md" },
-  { "Experiments" = "experiments.md" },
-  { "Findings and Caveats" = "findings.md" },
-  { "Run Artifacts" = "reports.md" },
-  { "H200 Guide" = "h200.md" },
-  { "CI and Pages" = "ci.md" },
+  { "Getting started" = "getting-started.md" },
+  { "Dataset format" = "dataset.md" },
+  { "Methodology" = "methodology.md" },
+  { "Evaluation protocol" = "evaluation.md" },
+  { "Validation" = "validation.md" },
+  { "Research experiments" = "research.md" },
+  { "CLI reference" = "cli.md" },
+  { "Release status" = "release-status.md" },
 ]
 
 [project.theme]
 language = "en"
 features = [
-  "announce.dismiss",
-  "content.code.annotate",
   "content.code.copy",
-  "content.tabs.link",
-  "content.tooltips",
+  "content.code.select",
   "navigation.footer",
   "navigation.indexes",
-  "navigation.instant",
-  "navigation.path",
   "navigation.sections",
   "navigation.top",
-  "navigation.tracking",
   "search.highlight",
+  "search.suggest",
 ]
 
-[project.theme.icon]
-logo = "lucide/radar"
+[project.markdown_extensions]
+admonition = {}
+attr_list = {}
+md_in_html = {}
+tables = {}
+toc = { permalink = true }
 
-[[project.theme.palette]]
-scheme = "default"
-toggle.icon = "lucide/sun"
-toggle.name = "Switch to dark mode"
-
-[[project.theme.palette]]
-scheme = "slate"
-toggle.icon = "lucide/moon"
-toggle.name = "Switch to light mode"
-
-[[project.extra.social]]
-icon = "fontawesome/brands/github"
-link = "https://github.com/l1ghtsource/steering-research"
-
-[project.markdown_extensions.abbr]
-[project.markdown_extensions.admonition]
-[project.markdown_extensions.attr_list]
-[project.markdown_extensions.def_list]
-[project.markdown_extensions.footnotes]
-[project.markdown_extensions.md_in_html]
-[project.markdown_extensions.toc]
-permalink = true
-[project.markdown_extensions.pymdownx.betterem]
-[project.markdown_extensions.pymdownx.caret]
-[project.markdown_extensions.pymdownx.details]
-[project.markdown_extensions.pymdownx.emoji]
-emoji_generator = "zensical.extensions.emoji.to_svg"
-emoji_index = "zensical.extensions.emoji.twemoji"
-[project.markdown_extensions.pymdownx.highlight]
-anchor_linenums = true
-line_spans = "__span"
-pygments_lang_class = true
-[project.markdown_extensions.pymdownx.inlinehilite]
-[project.markdown_extensions.pymdownx.keys]
-[project.markdown_extensions.pymdownx.magiclink]
-[project.markdown_extensions.pymdownx.mark]
-[project.markdown_extensions.pymdownx.smartsymbols]
-[project.markdown_extensions.pymdownx.superfences]
-custom_fences = [
-  { name = "mermaid", class = "mermaid", format = "pymdownx.superfences.fence_code_format" },
-]
-[project.markdown_extensions.pymdownx.tabbed]
-alternate_style = true
-combine_header_slug = true
-[project.markdown_extensions.pymdownx.tasklist]
-custom_checkbox = true
-[project.markdown_extensions.pymdownx.tilde]
+[project.markdown_extensions.pymdownx]
+details = {}
+highlight = { anchor_linenums = true }
+inlinehilite = {}
+superfences = {}
+tabbed = { alternate_style = true }

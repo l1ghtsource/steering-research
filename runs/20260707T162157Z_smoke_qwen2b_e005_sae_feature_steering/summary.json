@@ -1,9 +1,0 @@
-{
-  "experiment": "smoke_qwen2b_e005_sae_feature_steering",
-  "backend": "qwen35_2b_base",
-  "behavior": "sycophancy",
-  "selected_feature": 26298,
-  "selected_feature_delta": 0.021050520054996014,
-  "fallback_caa_norm": 0.10557282561108347,
-  "rows": 20
-}

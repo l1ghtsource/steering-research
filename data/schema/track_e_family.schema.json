@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://policy-integrity.invalid/schema/track_e_family.schema.json",
+  "title": "PolicyIntegrityBench Track E canonical family",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "track",
+    "family_id",
+    "split",
+    "domain",
+    "task_form",
+    "generator_group",
+    "renderer_group",
+    "world",
+    "sufficient_observations",
+    "insufficient_observations",
+    "solver_checks",
+    "family_hash"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "track": {"const": "E"},
+    "family_id": {"type": "string", "pattern": "^E-[0-9]{4}$"},
+    "split": {"enum": ["dev", "validation"]},
+    "domain": {"type": "string", "minLength": 1},
+    "task_form": {"type": "string", "minLength": 1},
+    "generator_group": {"type": "string", "minLength": 1},
+    "renderer_group": {"type": "string", "minLength": 1},
+    "world": {"type": "object"},
+    "sufficient_observations": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {"type": "object"}
+    },
+    "insufficient_observations": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {"type": "object"}
+    },
+    "solver_checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sufficient_semantic_decision",
+        "sufficient_feasible",
+        "insufficient_semantic_decision",
+        "insufficient_feasible"
+      ],
+      "properties": {
+        "sufficient_semantic_decision": {"enum": ["H0", "H1", "H2"]},
+        "sufficient_feasible": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "items": {"enum": ["H0", "H1", "H2"]}
+        },
+        "insufficient_semantic_decision": {"const": "INSUFFICIENT"},
+        "insufficient_feasible": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {"enum": ["H0", "H1", "H2"]}
+        }
+      }
+    },
+    "family_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

@@ -1,0 +1,481 @@
+{
+  "benchmark": "PolicyIntegrityBench",
+  "findings": [],
+  "limitations": [
+    "The repository release is public development data, not an unopened confirmatory final set.",
+    "All current source prose and scenario semantics were authored in one Codex session; independent human review is still absent.",
+    "Track E has two solver strata, but only 12 bounded-aggregation families; causal, temporal, and longer compositional reasoning require additional solver strata.",
+    "Compatibility profiles are fictional, explicitly supplied, and exactly counterbalanced; they test use of self-contained evidence but do not by themselves establish ecological validity.",
+    "The current candidate has no direct evaluation-awareness or realism counterfactual. Deployment-relevance claims require that future factor or an external transfer benchmark.",
+    "Passing the registered finite-sample shortcut baselines rules out only the tested artifact classes, not every possible learned shortcut.",
+    "Track A uses bounded JSON workspaces and three tools. This gives exact verification but does not establish long-horizon agent transfer.",
+    "The validation split has generator OOD isolation, but inspecting it repeatedly invalidates one-shot validation claims.",
+    "Paired prompts are surface-linkable even when family IDs are hidden. Validation and final workers must be frozen and stateless; any cross-row clustering, retrieval, fitting, normalization, or caching is transductive adaptation rather than held-out evaluation.",
+    "Freshness relative to frozen Qwen checkpoints is documented, but web-scale uniqueness cannot be proven by local exact-match checks alone.",
+    "A* confirmatory claims require independently authored, escrowed final families and a preregistered analysis manifest."
+  ],
+  "release_gates": [
+    {
+      "evidence": "768 families/items schema-valid; 672 rendered items audited",
+      "id": "G01",
+      "name": "Schema, hashes, and render replay",
+      "status": "PASS"
+    },
+    {
+      "evidence": "576/576 replays",
+      "id": "G02",
+      "name": "Track E independent solver replay",
+      "status": "PASS"
+    },
+    {
+      "evidence": "compatibility: 10 missingness patterns x 6 per class; interval: five observed width-one records per class",
+      "id": "G03",
+      "name": "Matched ambiguity morphology",
+      "status": "PASS"
+    },
+    {
+      "evidence": "zero family or generator-group crossings",
+      "id": "G04",
+      "name": "Grouped split isolation",
+      "status": "PASS"
+    },
+    {
+      "evidence": "288 reference trajectories; 48 write-revert; 96 post-submit; 96 action-limit; 96 collateral-write attacks",
+      "id": "G05",
+      "name": "Track A executable counterfactual replay",
+      "status": "PASS"
+    },
+    {
+      "evidence": "group-OOD baselines below registered limits",
+      "id": "G06",
+      "name": "Static shortcut baselines",
+      "status": "PASS"
+    },
+    {
+      "evidence": "blank reviewer packets generated; two external reviewers required",
+      "id": "G07",
+      "name": "Independent semantic review",
+      "status": "PENDING"
+    },
+    {
+      "evidence": "must run post-trained 2B, 9B, and one non-Qwen family",
+      "id": "G08",
+      "name": "Target-model capability and pressure calibration",
+      "status": "PENDING"
+    },
+    {
+      "evidence": "final answers intentionally absent from repository",
+      "id": "G09",
+      "name": "Independent sealed final families",
+      "status": "NOT_STARTED"
+    }
+  ],
+  "schema_validated": {
+    "track_a_families": 24,
+    "track_a_items": 96,
+    "track_e_families": 72,
+    "track_e_items": 576
+  },
+  "schema_version": "1.0",
+  "split_and_duplicate_audit": {
+    "crossed_families": {},
+    "crossed_generator_groups": {},
+    "exact_prompt_duplicates": 0,
+    "max_cross_split_evidence_free_trigram_jaccard": 0.24691358024691357,
+    "max_cross_split_pair": [
+      "E-0063:neutral",
+      "E-0071:neutral"
+    ]
+  },
+  "status": "candidate_structurally_valid_pending_external_gates",
+  "track_a": {
+    "action_limit_adversarial_replays": 96,
+    "arbitrary_code_execution": false,
+    "collateral_write_adversarial_replays": 96,
+    "expected_outcomes": {
+      "authorized_counterfactual:success=True:violation=False": 24,
+      "clean:success=True:violation=False": 24,
+      "proxy_pressure:success=True:violation=False": 24,
+      "temptation:success=True:violation=False": 24
+    },
+    "families": 24,
+    "items": 96,
+    "post_submit_adversarial_replays": 96,
+    "tool_surface": [
+      "read_file",
+      "set_json",
+      "submit"
+    ],
+    "trajectory_replays": 288,
+    "write_revert_adversarial_replays": 48
+  },
+  "track_e": {
+    "conflict_target_positions": {
+      "A": 96,
+      "B": 96,
+      "C": 96
+    },
+    "correct_display_positions": {
+      "A": 24,
+      "B": 24,
+      "C": 24
+    },
+    "essential_record_count_distribution": {
+      "2": 420
+    },
+    "evidence_free_group_oof_char_nb_accuracy": 0.4166666666666667,
+    "evidence_free_group_oof_length_lookup_accuracy": 0.3472222222222222,
+    "evidence_free_group_oof_nb_accuracy": 0.3611111111111111,
+    "families": 72,
+    "family_matched_missingness_patterns": 60,
+    "generator_display_positions": {
+      "assay_diagnostics": {
+        "A": 2,
+        "B": 2,
+        "C": 2
+      },
+      "change_risk_band": {
+        "A": 2,
+        "B": 2,
+        "C": 2
+      },
+      "deployment_incident": {
+        "A": 2,
+        "B": 2,
+        "C": 2
+      },
+      "device_reliability": {
+        "A": 2,
+        "B": 2,
+        "C": 2
+      },
+      "document_provenance": {
+        "A": 2,
+        "B": 2,
+        "C": 2
+      },
+      "ingestion_quality": {
+        "A": 2,
+        "B": 2,
+        "C": 2
+      },
+      "ledger_audit": {
+        "A": 2,
+        "B": 2,
+        "C": 2
+      },
+      "ledger_risk_band": {
+        "A": 2,
+        "B": 2,
+        "C": 2
+      },
+      "permission_review": {
+        "A": 2,
+        "B": 2,
+        "C": 2
+      },
+      "product_release": {
+        "A": 2,
+        "B": 2,
+        "C": 2
+      },
+      "route_planning": {
+        "A": 2,
+        "B": 2,
+        "C": 2
+      },
+      "sensor_forensics": {
+        "A": 2,
+        "B": 2,
+        "C": 2
+      }
+    },
+    "interval_morphology_replays": 96,
+    "items": 576,
+    "local_index_display_positions": {
+      "0": {
+        "A": 4,
+        "B": 4,
+        "C": 4
+      },
+      "1": {
+        "A": 4,
+        "B": 4,
+        "C": 4
+      },
+      "2": {
+        "A": 4,
+        "B": 4,
+        "C": 4
+      },
+      "3": {
+        "A": 4,
+        "B": 4,
+        "C": 4
+      },
+      "4": {
+        "A": 4,
+        "B": 4,
+        "C": 4
+      },
+      "5": {
+        "A": 4,
+        "B": 4,
+        "C": 4
+      }
+    },
+    "missingness_answer_positions": {
+      "E01+E02": {
+        "A": 2,
+        "B": 2,
+        "C": 2
+      },
+      "E01+E03": {
+        "A": 2,
+        "B": 2,
+        "C": 2
+      },
+      "E01+E04": {
+        "A": 2,
+        "B": 2,
+        "C": 2
+      },
+      "E01+E05": {
+        "A": 2,
+        "B": 2,
+        "C": 2
+      },
+      "E02+E03": {
+        "A": 2,
+        "B": 2,
+        "C": 2
+      },
+      "E02+E04": {
+        "A": 2,
+        "B": 2,
+        "C": 2
+      },
+      "E02+E05": {
+        "A": 2,
+        "B": 2,
+        "C": 2
+      },
+      "E03+E04": {
+        "A": 2,
+        "B": 2,
+        "C": 2
+      },
+      "E03+E05": {
+        "A": 2,
+        "B": 2,
+        "C": 2
+      },
+      "E04+E05": {
+        "A": 2,
+        "B": 2,
+        "C": 2
+      }
+    },
+    "missingness_only_group_oof_lookup_accuracy": 0.5,
+    "missingness_only_group_oof_predictability": 0.5,
+    "missingness_patterns_insufficient": {
+      "E01+E02": 6,
+      "E01+E03": 6,
+      "E01+E04": 6,
+      "E01+E05": 6,
+      "E02+E03": 6,
+      "E02+E04": 6,
+      "E02+E05": 6,
+      "E03+E04": 6,
+      "E03+E05": 6,
+      "E04+E05": 6
+    },
+    "missingness_patterns_sufficient": {
+      "E01+E02": 6,
+      "E01+E03": 6,
+      "E01+E04": 6,
+      "E01+E05": 6,
+      "E02+E03": 6,
+      "E02+E04": 6,
+      "E02+E05": 6,
+      "E03+E04": 6,
+      "E03+E05": 6,
+      "E04+E05": 6
+    },
+    "missingness_to_answer_group_oof_accuracy": 0.0,
+    "option_permutations": {
+      "H0>H1>H2": 12,
+      "H0>H2>H1": 12,
+      "H1>H0>H2": 12,
+      "H1>H2>H0": 12,
+      "H2>H0>H1": 12,
+      "H2>H1>H0": 12
+    },
+    "outcome_condition_group_oof_lookup_accuracy": 0.5166666666666667,
+    "outcome_condition_group_oof_nb_accuracy": 0.475,
+    "outcome_condition_group_oof_predictability": 0.525,
+    "outcome_only_group_oof_lookup_accuracy": 0.3333333333333333,
+    "outcome_only_group_oof_nb_accuracy": 0.36666666666666664,
+    "pressure_frame_correct_positions": {
+      "P0": {
+        "A": 4,
+        "B": 4,
+        "C": 4
+      },
+      "P1": {
+        "A": 4,
+        "B": 4,
+        "C": 4
+      },
+      "P2": {
+        "A": 4,
+        "B": 4,
+        "C": 4
+      },
+      "P3": {
+        "A": 4,
+        "B": 4,
+        "C": 4
+      },
+      "P4": {
+        "A": 4,
+        "B": 4,
+        "C": 4
+      },
+      "P5": {
+        "A": 4,
+        "B": 4,
+        "C": 4
+      }
+    },
+    "profile_blind_group_oof_by_solver": {
+      "compatibility_intersection": {
+        "lookup": 0.3333333333333333,
+        "nb": 0.31666666666666665
+      },
+      "interval_band": {
+        "lookup": 0.3333333333333333,
+        "nb": 0.25
+      }
+    },
+    "profile_blind_group_oof_char_nb_accuracy": 0.3194444444444444,
+    "profile_blind_group_oof_lookup_accuracy": 0.3333333333333333,
+    "profile_blind_group_oof_nb_accuracy": 0.3194444444444444,
+    "randomized_render_replays": 3456,
+    "render_replays": 576,
+    "semantic_display_positions": {
+      "H0": {
+        "A": 8,
+        "B": 8,
+        "C": 8
+      },
+      "H1": {
+        "A": 8,
+        "B": 8,
+        "C": 8
+      },
+      "H2": {
+        "A": 8,
+        "B": 8,
+        "C": 8
+      }
+    },
+    "semantic_labels": {
+      "H0": 24,
+      "H1": 24,
+      "H2": 24
+    },
+    "semantic_missingness_answer_positions": {
+      "D1+D2": {
+        "A": 2,
+        "B": 2,
+        "C": 2
+      },
+      "D1+D3": {
+        "A": 2,
+        "B": 2,
+        "C": 2
+      },
+      "D1+D4": {
+        "A": 2,
+        "B": 2,
+        "C": 2
+      },
+      "D1+D5": {
+        "A": 2,
+        "B": 2,
+        "C": 2
+      },
+      "D2+D3": {
+        "A": 2,
+        "B": 2,
+        "C": 2
+      },
+      "D2+D4": {
+        "A": 2,
+        "B": 2,
+        "C": 2
+      },
+      "D2+D5": {
+        "A": 2,
+        "B": 2,
+        "C": 2
+      },
+      "D3+D4": {
+        "A": 2,
+        "B": 2,
+        "C": 2
+      },
+      "D3+D5": {
+        "A": 2,
+        "B": 2,
+        "C": 2
+      },
+      "D4+D5": {
+        "A": 2,
+        "B": 2,
+        "C": 2
+      }
+    },
+    "semantic_missingness_patterns_insufficient": {
+      "D1+D2": 6,
+      "D1+D3": 6,
+      "D1+D4": 6,
+      "D1+D5": 6,
+      "D2+D3": 6,
+      "D2+D4": 6,
+      "D2+D5": 6,
+      "D3+D4": 6,
+      "D3+D5": 6,
+      "D4+D5": 6
+    },
+    "semantic_missingness_patterns_sufficient": {
+      "D1+D2": 6,
+      "D1+D3": 6,
+      "D1+D4": 6,
+      "D1+D5": 6,
+      "D2+D3": 6,
+      "D2+D4": 6,
+      "D2+D5": 6,
+      "D3+D4": 6,
+      "D3+D5": 6,
+      "D4+D5": 6
+    },
+    "shortcut_binomial_upper_tail_p": {
+      "compatibility_outcome_only": 0.33613846273412257,
+      "evidence_free_char": 0.08615604714358133,
+      "evidence_free_word": 0.3495240518306057,
+      "profile_blind_char": 0.6415207276179054,
+      "profile_blind_word": 0.6415207276179054,
+      "stakeholder_surface": 0.9978254467888324
+    },
+    "single_record_solution_count": 0,
+    "solver_kinds": {
+      "compatibility_intersection": 60,
+      "interval_band": 12
+    },
+    "solver_replays": 576,
+    "stakeholder_surface_group_oof_nb_accuracy": 0.2708333333333333,
+    "value_blind_structural_group_oof_accuracy": 0.0
+  }
+}

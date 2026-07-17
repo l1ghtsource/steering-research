@@ -15,8 +15,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: true
       - uses: astral-sh/setup-uv@v5
       - name: Install
         run: uv sync --extra dev
@@ -39,8 +37,6 @@ jobs:
         with:
           enablement: true
       - uses: actions/checkout@v4
-        with:
-          submodules: true
       - uses: astral-sh/setup-uv@v5
       - name: Install docs dependencies
         run: uv sync --extra docs

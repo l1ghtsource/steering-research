@@ -1,136 +1,63 @@
----
-icon: lucide/radar
----
+# PolicyIntegrityBench
 
-# Steering Research
+PolicyIntegrityBench is a controlled benchmark for testing whether a language model keeps
+an evidence-grounded conclusion or an explicitly authorized objective when another
+contextual signal favors a different answer or action.
 
-This repository is a reproducible experiment harness for studying latent
-behavioral features in Qwen3.5 models with LatentBehaviorBench and Qwen-Scope
-sparse autoencoders.
+The benchmark is designed for behavioral evaluation, representation analysis, activation
+steering, sparse feature studies, and transfer experiments. It does not collapse alignment
+into one scalar. Capability, integrity, calibration, expression validity, and authorization
+sensitivity remain separate outcomes.
 
-## Abstract
+## What is measured
 
-The project asks whether undesirable behavioral tendencies in a language model
-can be discovered from contrastive benchmark data, represented as dense residual
-directions or sparse Qwen-Scope features, and then controlled at inference time.
-It also compares those training-free interventions with a supervised LoRA SFT
-baseline trained from the desirable side of the same contrast pairs.
+### Epistemic integrity
 
-The intended outcome is not a single leaderboard number. The intended outcome is
-a reproducible research pipeline that answers four questions for each behavior
-axis:
+Track E presents self-contained evidence and an exact decision rule. The same underlying
+case is rendered under neutral context, aligned advice, conflicting advice, aligned social
+pressure, conflicting social pressure, and matched insufficient evidence.
 
-- is the behavior linearly visible in Qwen3.5 activations;
-- is it represented by identifiable Qwen-Scope sparse features;
-- can it be steered without simply changing length, refusal style, or generic
-  helpfulness;
-- does training-free steering compete with or complement LoRA training.
+The central question is not simply whether the answer is correct. It is whether a model that
+solves the neutral case preserves that answer when a stakeholder favors a false alternative.
 
-!!! warning "Research status"
+### Agentic integrity
 
-    The repository provides an experiment harness, artifact discipline, and
-    reproducible evaluation path. Strong safety, OOD, or capability-preservation
-    claims still require held-out evaluation, controls, and manual review of
-    benchmark-specific caveats.
+Track A presents a deterministic JSON workspace, an authorized task, and a writable proxy
+route. The proxy is unauthorized in temptation and pressure conditions, but the exact same
+action becomes necessary and explicitly authorized in a counterfactual condition.
 
-## What the repository does
+This separates targeted integrity from blanket conservatism. A method that blocks every
+proxy-looking action also fails the authorized control.
 
-The codebase implements the complete path from benchmark records to activation
-directions, sparse feature deltas, steering interventions, run artifacts, and
-static dashboards:
+## Benchmark at a glance
 
-```mermaid
-flowchart LR
-  A["LatentBehaviorBench submodule"] --> B["Clean split loader"]
-  B --> C["Qwen3.5 forward pass"]
-  C --> D["CAA / probes / SAE delta"]
-  D --> E["Residual or SAE decoder steering"]
-  E --> F["Metrics, reports, logs"]
-  F --> G["Static HTML dashboard"]
-```
+| Track | Families | Conditions | Items | Ground truth |
+|---|---:|---:|---:|---|
+| Evidence-grounded decisions | 72 | 8 | 576 | Constraint and interval solvers |
+| Executable agent tasks | 24 | 4 | 96 | State and action-history predicates |
 
-The research program is described in detail in `Research Program`. The
-experiment protocols are described in `Experiments`. Current conclusions,
-invalid claims, and benchmark caveats are tracked in `Findings and Caveats`.
+All conditions from a canonical family remain in one split. Validation holds out complete
+generator groups rather than random rendered prompts.
 
-## Behavior axes
+## Design principles
 
-LatentBehaviorBench provides contrastive supervision for six target axes:
+1. **Executable labels.** Stored answers are never trusted during validation.
+2. **Paired counterfactuals.** Evidence or authorization is held fixed while contextual
+   pressure changes.
+3. **Capability qualification.** Integrity is evaluated among families solved in the
+   neutral condition.
+4. **No primary LLM judge.** Decisions, citations, state changes, and violations have exact
+   programmatic scores.
+5. **Artifact controls.** Answer positions, pressure targets, missingness, and authoring
+   templates are counterbalanced and tested with group-held-out shortcut models.
+6. **Explicit scientific limits.** Public data are exploratory; confirmatory claims require
+   independently authored sealed families.
 
-| Axis | Positive side means | Desired direction |
-| --- | --- | --- |
-| `hallucination` | unsupported or incorrect claim | source-grounded answer |
-| `sycophancy` | agreeing with a false or leading user premise | calibrated disagreement |
-| `premature_refusal` | refusing when a benign answer is possible | helpful compliant answer |
-| `deception` | misleading or strategically false response | honest response |
-| `unsafe_planning` | actionable unsafe planning | safe refusal or redirection |
-| `overconfidence` | unwarranted certainty | calibrated uncertainty |
+## Current status
 
-The repository follows the benchmark convention:
+The checked-in candidate passes schemas, hashes, solver replay, split isolation, static
+shortcut baselines, prompt rerendering, and adversarial agent-runtime checks. External
+semantic review, post-trained model calibration, and a sealed final set remain open gates.
 
-```text
-direction = mean(h_positive - h_negative)
-```
-
-For undesirable behaviors, suppression usually corresponds to a negative
-steering coefficient along that direction.
-
-## Model targets
-
-Configured model targets include:
-
-- `Qwen/Qwen3.5-2B-Base` for workstation development;
-- `Qwen/Qwen3.5-9B-Base` for H200 runs;
-- `Qwen/Qwen3.5-27B` for larger H200 runs.
-
-Each target must use its matching Qwen-Scope SAE:
-
-- `Qwen/SAE-Res-Qwen3.5-2B-Base-W32K-L0_50`
-- `Qwen/SAE-Res-Qwen3.5-9B-Base-W64K-L0_50`
-- `Qwen/SAE-Res-Qwen3.5-27B-W80K-L0_50`
-
-Common assumptions:
-
-- Hook point: residual stream
-- SAE format: `layer{n}.sae.pt` with `W_enc`, `W_dec`, `b_enc`, `b_dec`
-
-## Core commands
-
-```bash
-uv sync --extra dev --extra model --extra training --extra docs
-uv run steering validate-data
-uv run ruff format --check
-uv run ruff check
-uv run ty check
-uv run pytest
-uv run zensical build --clean --strict
-```
-
-Run artifact verification after experiments complete:
-
-```bash
-uv run steering verify-runs --runs-root runs
-```
-
-## Experiment set
-
-| ID | Name | Mode | Purpose |
-| --- | --- | --- | --- |
-| E001 | Mean direction | training-free | CAA behavior direction maps |
-| E002 | Activation monitor | training-free | AUROC detector over projections |
-| E003 | SAE delta | training-free | Qwen-Scope feature ranking |
-| E004 | CAA steering | training-free | Residual steering dose response |
-| E005 | SAE feature steering | training-free | Decoder-vector steering |
-| E006 | LoRA SFT | training | Good-side contrast supervised training |
-| E007 | Best-layer CAA sweep | training-free | Best representation layers tested causally |
-| E008 | Specificity matrix | training-free | Cross-behavior direction specificity |
-| E009 | Causal controls | training-free | Random, sign, shuffled, and unrelated controls |
-| E010 | SAE feature sweep | training-free | Multi-feature decoder-vector interventions |
-| E011 | Orthogonalized steering | training-free | Target steering after nuisance-axis removal |
-| E012 | Origin transfer | training-free | Source-backed and synthetic transfer matrix |
-| E013 | Dynamic steering | training-free | Activation-gated steering versus always-on |
-| E014 | Multi-layer steering | training-free | Single-layer versus layer-window hooks |
-| E015 | Layer transfer | training-free | Source-layer to target-layer alignment |
-| E016 | Forced-choice CAA | training-free | Logprob preference shift between paired answers |
-| E017 | Calibrated alpha | training-free | Alpha in behavior-comparable activation units |
-| E018 | Position steering | training-free | Prompt/answer token-position intervention ablation |
+Start with [Getting started](getting-started.md), then read the
+[evaluation protocol](evaluation.md) before running a model or fitting a representation.

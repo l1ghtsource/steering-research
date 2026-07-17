@@ -1,0 +1,56 @@
+{
+  "benchmark": "PolicyIntegrityBench",
+  "contract_hashes": {
+    "authoring/source_catalog.json": "e66e7a7718ce15ea70d4d4ca0b788a04e264aaf31b80d01e155fd2d18c330ddc",
+    "schema/track_a.schema.json": "192ff29b29bc7512adb00936e36f8ee424117931a3fc1fc7dfde8b0b50a3b58e",
+    "schema/track_a_family.schema.json": "9890f336e1a4264dfaa06c1b0829e905f94b7f5127faed128dd3a4deece4c760",
+    "schema/track_e.schema.json": "8bca26df41930c9865d095159db476006bf240844ccf74212607f63107ec34fc",
+    "schema/track_e_family.schema.json": "c09b9abf01932457c7f8976f0b15a51f6ee16ad6dd463232de85aa5675bfc341",
+    "src/policy_integrity_bench/builder.py": "6bd1436b2456f8d8fc7360092c3bdfc6b62b35dc5846e6c0ca096c08e13be47a",
+    "src/policy_integrity_bench/core.py": "24d88f18144036094c11888fa1f9f8be5c25218a72b58d2ad5bd601c0218a28a",
+    "src/policy_integrity_bench/materialize.py": "37639be59a8064a3bb8f82ea234ad4f37e86313df685257d24d7dc5d1f2a01bf",
+    "src/policy_integrity_bench/validator.py": "1319dff5ad95f4810bb27469fbe9c8e88f2a7b606109caf28fd29b37d6313b66"
+  },
+  "counts": {
+    "dev_families": 70,
+    "track_a_families": 24,
+    "track_a_items": 96,
+    "track_e_families": 72,
+    "track_e_items": 576,
+    "validation_families": 26
+  },
+  "created_at": "2026-07-17",
+  "dataset_hash": "8a6e446b33b1494790a0d046943f59a6ea0625c63963ace57651d81de0520e48",
+  "file_hashes": {
+    "dev/track_a_families.jsonl": "97425e6f4650c45a416e12448dd50e0230ba2458a3ce6c1990e6ffe9fae547b9",
+    "dev/track_a_items.jsonl": "7d5c96941cbd1b4cef3858ddae8a91ed3867222b34aa49e96acc4f9fb90bfd36",
+    "dev/track_e_families.jsonl": "db51179edbf7f36349df3397c479843ea53dcd8d3427521c030b50f7e791c038",
+    "dev/track_e_items.jsonl": "a198f7e038c777daf02969c4bf51abe0dc84361720d03e5de2998238191f8291",
+    "validation/track_a_families.jsonl": "c491395d8da1f0907212a824f0c3334cd6be24d7a2279b8c2134605ce0f50f75",
+    "validation/track_a_items.jsonl": "bea57f8b33fb41fee313338f70866dacd4635d7a4db690d5b09c862444f2c137",
+    "validation/track_e_families.jsonl": "68d9930ec02642b95624729f985f8780867ea73ee473467ed0c9f0dc11ee75b7",
+    "validation/track_e_items.jsonl": "275ac2997d37eb31ff0363bae3b42faf60a2658f4345a4ee25520f0a137de876"
+  },
+  "generator_groups": [
+    "access_scope",
+    "assay_diagnostics",
+    "audit_reconciliation",
+    "change_risk_band",
+    "ci_configuration",
+    "data_provenance",
+    "deployment_incident",
+    "device_reliability",
+    "document_provenance",
+    "experiment_robustness",
+    "ingestion_quality",
+    "ledger_audit",
+    "ledger_risk_band",
+    "permission_review",
+    "product_release",
+    "release_approval",
+    "route_planning",
+    "sensor_forensics"
+  ],
+  "release_status": "candidate_pending_independent_review_and_model_calibration",
+  "schema_version": "1.0"
+}

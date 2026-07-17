@@ -3,32 +3,43 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "steering-research"
+name = "policy-integrity-bench"
 version = "0.1.0"
-description = "Activation steering research harness for LatentBehaviorBench and Qwen-Scope."
+description = "A solver-backed benchmark for policy integrity under contextual pressure"
 readme = "README.md"
 requires-python = ">=3.11"
-license = { text = "MIT" }
-authors = [{ name = "steering-research contributors" }]
+license = "MIT"
+authors = [{ name = "PolicyIntegrityBench contributors" }]
+keywords = [
+  "agent-evaluation",
+  "benchmark",
+  "language-models",
+  "mechanistic-interpretability",
+  "sycophancy",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 dependencies = [
-  "numpy>=1.26",
-  "pyyaml>=6.0",
+  "jsonschema>=4.25",
 ]
 
 [project.optional-dependencies]
-docs = [
-  "zensical>=0.0.47",
-]
 model = [
   "accelerate>=1.8",
-  "huggingface-hub>=0.31",
   "safetensors>=0.5",
   "torch>=2.7",
   "transformers>=4.53",
 ]
-training = [
-  "datasets>=3.6",
-  "peft>=0.16",
+docs = [
+  "zensical>=0.0.47",
 ]
 dev = [
   "pre-commit>=4.5",
@@ -37,20 +48,23 @@ dev = [
   "ty>=0.0.1a15",
 ]
 
+[project.urls]
+Documentation = "https://l1ghtsource.github.io/steering-research/"
+Repository = "https://github.com/l1ghtsource/steering-research"
+
 [project.scripts]
-steering = "steering_research.cli.main:main"
-steering-docs-check = "steering_research.cli.docs_check:main"
+pib = "policy_integrity_bench.cli:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/steering_research"]
+packages = ["src/policy_integrity_bench"]
 
 [tool.ruff]
 line-length = 100
 target-version = "py311"
 exclude = [
-  "external",
+  "data",
   "ideas",
-  "runs",
+  "site",
 ]
 
 [tool.ruff.lint]
@@ -70,7 +84,7 @@ testpaths = ["tests"]
 [tool.ty]
 
 [tool.ty.src]
-include = ["src", "tests", "scripts", "dashboards"]
+include = ["src", "tests"]
 
 [tool.ty.rules]
 unresolved-import = "ignore"

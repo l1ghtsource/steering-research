@@ -1,5 +1,0 @@
-{
-  "experiment": "phase2_qwen35_2b_e008_specificity_matrix",
-  "backend": "qwen35_2b_base",
-  "rows": 44
-}

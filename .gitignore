@@ -222,3 +222,7 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 /tmp/
+/ideas/*
+!/ideas/*.md
+/data/private/
+/data/sealed_plaintext/
