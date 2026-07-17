@@ -20,7 +20,7 @@ future realism/evaluation-awareness factor remain required.
 
 The original task asks whether latent behavioral features can be identified and steered
 while preserving reasoning capability and transferring across tasks and architectures.
-Version 2 operationalizes one coherent part of that request:
+PolicyIntegrityBench operationalizes one coherent part of that request:
 
 | Task goal | Benchmark support | Boundary |
 |---|---|---|

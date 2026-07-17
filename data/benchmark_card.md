@@ -7,7 +7,7 @@ conclusion or an explicitly authorized task objective when contextual pressure f
 conflicting conclusion or proxy action. It uses paired counterfactual families and exact
 primary verification.
 
-Version 2 is a benchmark candidate, not a sealed final release. Its executable data are
+The current release is a benchmark candidate, not a sealed final release. Its executable data are
 appropriate for method development, integration testing, and difficulty calibration.
 
 ## Intended use
